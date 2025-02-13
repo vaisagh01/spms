@@ -2,12 +2,20 @@ import React from 'react'
 import {Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 const UpcomingEvents = () => {
+  const axios = require('axios');  // Only needed if you're using Node.js
+
+  
   return (
     <Card>
       <CardHeader>
         <CardTitle>Recent Sales</CardTitle>
         <CardDescription>You made 265 sales this month.</CardDescription>
       </CardHeader>
+      {/* {data.map(item => {
+        return(
+          <span>{item.name}</span>
+        )
+      })} */}
       <CardContent>
         <div className='space-y-8'>
           <div className='flex items-center'>

@@ -4,6 +4,46 @@ import Notifications from '../../components/Notifications'
 import UpcomingEvents from '../../components/UpcomingEvents'
 import { useUser } from '@/app/context/UserContext'
 import axios from 'axios'
+const clubs = [
+  {
+    title: "Club 1",
+    img: "club_image.jpg",
+    desc: "SC2",
+    // button: true
+  },
+  
+  {
+    title: "Club 2",
+    img: "club_image.jpg",
+    desc: "SC2",
+    // button: true
+  },
+  {
+    title: "Club 3",
+    img: "club_image.jpg",
+    desc: "SC3",
+    // button: true
+  },
+  {
+    title: "Club 4",
+    img: "club_image.jpg",
+    desc: "SC4",
+    // button: true
+  },
+  {
+    title: "Club 5",
+    img: "club_image.jpg",
+    desc: "SC5",
+    // button: true
+  },
+  {
+    title: "Club 6",
+    img: "club_image.jpg",
+    desc: "SC6",
+    // button: true
+  },
+
+]
 const page = () => {
   const {user} = useUser();
   const axios = require('axios');  // Only needed if you're using Node.js
@@ -18,30 +58,18 @@ const page = () => {
   return (
     <div className='p-4'>
       <div className='flex flex-1 flex-col space-y-2'>
-
-        <div className='flex items-center justify-between space-y-2'>
+        
+        <div className='flex items-center justify-between space-y-2 my-4'>
           <h2 className='text-4xl font-bold tracking-tight'>
-            Hi, Welcome back {user.name}!
+            Manage your clubs here...!
           </h2>
         </div>
 
         <div className='grid gap-4 md:grid-cols-4 lg:grid-cols-4'>
-          <MyCard />
-          <MyCard />
-          <MyCard />
-          <MyCard />
+          {clubs.map((item,index) => (
+            <MyCard key={index} data={item}/>
+          ))}
         </div>
-
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7'>
-          <div className='col-span-4'><UpcomingEvents /></div>
-          <div className='col-span-4 md:col-span-3'>
-            {/* sales arallel routes */}
-            {<Notifications />}
-          </div>
-          <div className='col-span-4'>{<Notifications />}</div>
-          <div className='col-span-4 md:col-span-3'>{<Notifications />}</div>
-        </div>
-
       </div>
     </div>
   )

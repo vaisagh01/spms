@@ -23,16 +23,19 @@ class Club(models.Model):
 
     def __str__(self):
         return self.club_name
-    
+
 class ClubMembers(models.Model):
-    member_id = models.AutoField(primary_key=True)
-    student_id = models.IntegerField()  # Assuming Student model exists elsewhere
-    club_id = models.ForeignKey(Club, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="club_memberships")
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="club_members", default=1)  # Set a default club
     role_in_club = models.CharField(max_length=255)
     date_joined = models.DateField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('student', 'club')  # Ensure a student cannot join the same club twice
 
     def __str__(self):
-        return f"{self.student_id} - {self.club_id}"
+        return f"{self.student.first_name} {self.student.last_name} - {self.club.club_name}"
+
 class Event(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()

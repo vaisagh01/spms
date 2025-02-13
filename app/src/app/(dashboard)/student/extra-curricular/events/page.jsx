@@ -1,12 +1,6 @@
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import MyCard from "@/components/MyCard"
+import { DataTable } from "./data-table"
+import { columns } from "./columns"
 const data = [
   {
     name: "blossoms",
@@ -26,36 +20,68 @@ const data = [
     role: "hospitality",
     date: "12/12/2021"
   },
+  {
+    name: "art",
+    club : "Student Welfare Office",
+    role: "hospitality",
+    date: "12/12/2021"
+  },
+  {
+    name: "art",
+    club : "Student Welfare Office",
+    role: "hospitality",
+    date: "12/12/2021"
+  },
+  {
+    name: "art",
+    club : "Student Welfare Office",
+    role: "hospitality",
+    date: "12/12/2021"
+  },
+  {
+    name: "art",
+    club : "Student Welfare Office",
+    role: "hospitality",
+    date: "12/12/2021"
+  },
+  {
+    name: "art",
+    club : "Student Welfare Office",
+    role: "hospitality",
+    date: "12/12/2021"
+  },
+  {
+    name: "art",
+    club : "Student Welfare Office",
+    role: "hospitality",
+    date: "12/12/2021"
+  },
 ]
 const page = () => {
   return (
     <div className="p-4">
       <div className='flex items-center justify-between space-y-2'>
           <h2 className='text-4xl font-bold tracking-tight'>
-            Events!
+            Manage your events here
           </h2>
+      </div>
+
+      <div className="flex gap-3">
+        <div className="w-3/4">
+        <div className="container mx-auto py-10">
+          <DataTable columns={columns} data={data} />
         </div>
-      <Table className="my-4">
-        <TableCaption>A list of your recent invoices.</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Name</TableHead>
-            <TableHead>Club</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead className="text-right">Date</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((data, i) => (
-            <TableRow>
-              <TableCell className="font-medium">{data.name}</TableCell>
-              <TableCell>{data.club}</TableCell>
-              <TableCell>{data.role}</TableCell>
-              <TableCell className="text-right">{data.date}</TableCell>
-            </TableRow>
-            ))}
-        </TableBody>
-      </Table>
+        </div>
+
+        <div className="w-1/4">
+          {/* <div className="grid gap-2 md:grid-cols-1 lg:grid-cols-1">
+            <MyCard desc={"number of events"} num={234}/>
+            <MyCard desc={"number of events"} num={234}/>
+            <MyCard desc={"number of events"} num={234}/>
+            <MyCard desc={"number of events"} num={234}/>
+          </div> */}
+        </div>
+      </div>
     </div>
   )
 }

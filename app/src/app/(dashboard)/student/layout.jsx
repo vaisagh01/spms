@@ -1,5 +1,5 @@
 "use client"
-import { GraduationCap, Trophy, Code } from "lucide-react";
+import { GraduationCap, Trophy, Code, Home } from "lucide-react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { useUser } from "@/app/context/UserContext";
@@ -13,10 +13,22 @@ const data = {
   },
   navMain: [
     {
+      title: "Home",
+      isActive: true,
+      icon: Home,
+      url: "student",
+      single: true
+    },
+    {
       title: "Curriculur",
+      single: false,
       isActive: true,
       icon:GraduationCap,
       items: [
+        {
+          title: "Course home",
+          url: "#"
+        },
         {
           title: "Course Plan",
           url: "student/curricular/courses",
@@ -26,11 +38,7 @@ const data = {
           url: "student/curricular/assignments",
         },
         {
-          title: "Subjects",
-          url: "student/curricular/subjects",
-        },
-        {
-          title: "Exams",
+          title: "Assessments",
           url: "student/curricular/marks",
         },
       ],
@@ -39,11 +47,17 @@ const data = {
       title: "Extra Curriculur",
       url: "#",
       isActive: true,
+      single: false,
       icon:Trophy,
       items: [
         {
+          title: "Clubs home",
+          url: "#",
+          url: "student/extra-curricular"
+        },
+        {
           title: "Clubs",
-          url: "student/extra-curricular/clubs",
+          url: "student/extra-curricular/clubs"
         },
         {
           title: "Events",
@@ -58,6 +72,7 @@ const data = {
     {
       title: "Co-Curriculur",
       url: "#",
+      single: false,
       isActive: true,
       icon: Code,
       items: [

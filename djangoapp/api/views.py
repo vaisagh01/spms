@@ -1,7 +1,8 @@
 from django.http import JsonResponse
 from rest_framework import viewsets
-from .models import Student, Club, Event
+from .models import Student, Club, Event, ClubMembers
 from django.core import serializers
+from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 from .serializers import StudentSerializer, ClubSerializer, EventSerializer
 
@@ -43,3 +44,17 @@ def get_club_by_id(request, club_id):
         return JsonResponse({'club': club_data})
     except Club.DoesNotExist:
         return JsonResponse({'error': 'Club not found'}, status=404)
+    
+def get_clubs_by_student(request, student_id):
+    """
+    Fetch all clubs that a specific student (by student_id) is a member of.
+    """
+    # Ensure the student exists
+    student = get_object_or_404(Student, pk=student_id)
+    
+    # Get all clubs where this student is a member
+    clubs = Club.objects.filter(club_members__student=student).values(
+        "club_id", "club_name", "club_category", "faculty_incharge", "created_date"
+    )
+
+    return JsonResponse({'clubs': list(clubs)}, safe=False)

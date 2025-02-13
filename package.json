@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@fullcalendar/react": "^6.1.15",
     "axios": "^1.7.9"
   }
 }
