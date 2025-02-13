@@ -12,5 +12,8 @@ urlpatterns = [
     path('', include(router.urls)),
     path('clubs', views.get_clubs, name='get_clubs'),
     path('club/<int:club_id>/', views.get_club_by_id, name='get_club_by_id'),
+    path("clubs/student/<int:student_id>/", views.get_clubs_by_student, name="get_clubs_by_student"),
+
     
 ]
+
