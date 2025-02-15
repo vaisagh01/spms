@@ -1,10 +1,60 @@
 from django.http import JsonResponse
 from rest_framework import viewsets
-from .models import Student, Club, Event, ClubMembers
-from django.core import serializers
 from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_http_methods
-from .serializers import StudentSerializer, ClubSerializer, EventSerializer
+from .models import Student, Club, Event, ClubMembers, Subject, Semester, Teacher, Assignment, Topic, Chapter
+from .serializers import StudentSerializer, ClubSerializer, EventSerializer, SubjectSerializer, AssignmentSerializer, TopicSerializer, ChapterSerializer
+
+def get_student_details(request, student_id):
+    student = get_object_or_404(Student, pk=student_id)
+    student_data = {
+        "first_name": student.first_name,
+        "last_name": student.last_name,
+        "email": student.email,
+        "enrollment_number": student.enrollment_number,
+        "course": student.course,
+        "year_of_study": student.year_of_study
+    }
+    return JsonResponse({"student": student_data})
+
+def get_subject_by_semester(request, semester_no):
+    subjects = Subject.objects.filter(semester=semester_no).select_related("teacher")
+    subjects_data = [{
+        "subject_name": subject.subject_name,
+        "subject_code": subject.subject_code,
+        "teacher_name":  f"{subject.teacher.first_name} {subject.teacher.last_name}",
+        "course": subject.course.course_name if subject.course else "No course assigned"
+
+    } for subject in subjects]
+    return JsonResponse({"subjects": subjects_data})
+
+def get_assignments_by_subject(request, subject_id):
+    assignments = Assignment.objects.filter(subject_id=subject_id)
+    assignments_data = [{
+        "title": assignment.title,
+        "description": assignment.description,
+        "due_date": assignment.due_date,
+        "max_marks": assignment.max_marks
+    } for assignment in assignments]
+    return JsonResponse({"assignments": assignments_data})
+
+def get_topics_by_subject(request, subject_id):
+    topics = Topic.objects.filter(subject_id=subject_id)
+    topics_data = [{
+        "topic_name": topic.topic_name,
+        "is_completed": topic.is_completed
+    } for topic in topics]
+    return JsonResponse({"topics": topics_data})
+
+def get_chapters_by_topic(request, topic_id):
+    chapters = Chapter.objects.filter(topic_id=topic_id)
+    chapters_data = [{
+        "chapter_name": chapter.chapter_name,
+        "is_completed": chapter.is_completed,
+        "description": chapter.description
+    } for chapter in chapters]
+    return JsonResponse({"chapters": chapters_data})
+
+
 
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
@@ -17,44 +67,28 @@ class ClubViewSet(viewsets.ModelViewSet):
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
-    
 
 def get_clubs(request):
-    # Fetch all clubs
     clubs = Club.objects.all()
-    
-    # Create a list of dictionaries containing club name and category
-    clubs_data = [{'club_name': club.club_name, 'club_category': club.club_category} for club in clubs]
-    
-    # Return the club data as a JSON response
-    return JsonResponse({'clubs': clubs_data}, safe=False)
+    clubs_data = [{"club_name": club.club_name, "club_category": club.club_category} for club in clubs]
+    return JsonResponse({"clubs": clubs_data}, safe=False)
 
 def get_club_by_id(request, club_id):
     try:
-        # Fetch the club by ID
         club = Club.objects.get(club_id=club_id)
-        # Serialize the club data
         club_data = {
-            'club_name': club.club_name,
-            'club_category': club.club_category,
-            'faculty_incharge': club.faculty_incharge,
-            'created_date': club.created_date
+            "club_name": club.club_name,
+            "club_category": club.club_category,
+            "faculty_incharge": club.faculty_incharge,
+            "created_date": club.created_date
         }
-        # Return the club data as JSON
-        return JsonResponse({'club': club_data})
+        return JsonResponse({"club": club_data})
     except Club.DoesNotExist:
-        return JsonResponse({'error': 'Club not found'}, status=404)
-    
+        return JsonResponse({"error": "Club not found"}, status=404)
+
 def get_clubs_by_student(request, student_id):
-    """
-    Fetch all clubs that a specific student (by student_id) is a member of.
-    """
-    # Ensure the student exists
     student = get_object_or_404(Student, pk=student_id)
-    
-    # Get all clubs where this student is a member
     clubs = Club.objects.filter(club_members__student=student).values(
         "club_id", "club_name", "club_category", "faculty_incharge", "created_date"
     )
-
-    return JsonResponse({'clubs': list(clubs)}, safe=False)
+    return JsonResponse({"clubs": list(clubs)}, safe=False)

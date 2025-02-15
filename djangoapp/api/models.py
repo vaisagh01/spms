@@ -45,3 +45,110 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+class Course(models.Model):
+    course_id = models.AutoField(primary_key=True)
+    course_name = models.CharField(max_length=255)
+    department = models.CharField(max_length=255)
+    credits = models.IntegerField()
+
+    def __str__(self):
+        return self.course_name
+class Teacher(models.Model):
+    teacher_id = models.AutoField(primary_key=True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    phone_no = models.CharField(max_length=15, blank=True, null=True)
+    department = models.CharField(max_length=255)
+    designation = models.CharField(max_length=255)
+    email = models.EmailField(unique=True)
+    subject = models.ForeignKey(
+        'Subject', on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_teachers"
+    )  # Changed related_name
+
+    hire_date = models.DateField()
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.designation}"
+
+class Subject(models.Model):
+    subject_id = models.AutoField(primary_key=True)
+    subject_name = models.CharField(max_length=255)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="subjects")
+    semester = models.IntegerField()
+    teacher = models.ForeignKey(
+        Teacher, on_delete=models.CASCADE, related_name="subjects_taught"
+    )  # Changed related_name
+    subject_code = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.subject_name
+
+
+class Topic(models.Model):
+    topic_id = models.AutoField(primary_key=True)
+    topic_name = models.CharField(max_length=255)
+    is_completed = models.BooleanField(default=False)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="topics")
+    completion_time = models.DurationField()
+
+    def __str__(self):
+        return self.topic_name
+
+class Chapter(models.Model):
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name="chapters")
+    chapter_name = models.CharField(max_length=255)
+    is_completed = models.BooleanField(default=False)
+    description = models.TextField()
+
+    def __str__(self):
+        return self.chapter_name
+
+class Assessment(models.Model):
+    assessment_id = models.AutoField(primary_key=True)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="assessments")
+    assessment_type = models.CharField(max_length=255)
+    total_marks = models.IntegerField()
+    date_conducted = models.DateField()
+
+    def __str__(self):
+        return f"{self.assessment_type} - {self.subject.subject_name}"
+
+class StudentMarks(models.Model):
+    marks_id = models.AutoField(primary_key=True)
+    assessment = models.ForeignKey(Assessment, on_delete=models.CASCADE, related_name="student_marks")
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="marks")
+    marks_obtained = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.student.first_name} {self.student.last_name} - {self.marks_obtained} marks"
+
+class Assignment(models.Model):
+    assignment_id = models.AutoField(primary_key=True)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="assignments")
+    semester = models.IntegerField()
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    due_date = models.DateField()
+    max_marks = models.IntegerField()
+
+    def __str__(self):
+        return self.title
+
+class AssignmentSubmission(models.Model):
+    submission_id = models.AutoField(primary_key=True)
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name="submissions")
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="assignments_submitted")
+    submission_date = models.DateField()
+    marks_obtained = models.IntegerField(null=True, blank=True)
+    feedback = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.student.first_name} {self.student.last_name} - {self.assignment.title}"
+class Semester(models.Model):
+    semester_id = models.AutoField(primary_key=True)
+    semester_no = models.IntegerField(unique=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    def __str__(self):
+        return f"Semester {self.semester_no}"
