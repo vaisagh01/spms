@@ -39,7 +39,7 @@ const data = {
         },
         {
           title: "Assessments",
-          url: "student/2/curricular/marks",
+          url: "student/2/curricular/assessments",
         },
       ],
     },

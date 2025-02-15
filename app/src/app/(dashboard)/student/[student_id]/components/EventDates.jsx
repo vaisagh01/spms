@@ -1,141 +1,152 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import axios from "axios";
+import { useParams } from "next/navigation";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
 
-export default function EventDates(){
+const Calendar = () => {
   const [currentEvents, setCurrentEvents] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newEventTitle, setNewEventTitle] = useState("");
+  const [selectedEvents, setSelectedEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
+  const params = useParams();
+  const API_BASE_URL = "http://localhost:8000/api"; // Update with actual API URL
 
   useEffect(() => {
-    // Load events from local storage when the component mounts
-    if (typeof window !== "undefined") {
-      const savedEvents = localStorage.getItem("events");
-      if (savedEvents) {
-        setCurrentEvents(JSON.parse(savedEvents));
+    const id = params.student_id;
+    if (!id) return;
+
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/assignments/student/${id}/`);
+        const today = new Date();
+
+        const assignmentEvents = response.data.assignments
+          .filter(assignment => new Date(assignment.due_date) >= today)
+          .map((assignment) => ({
+            id: assignment.assignment_id,
+            title: assignment.title,
+            description: assignment.description,
+            due_date: assignment.due_date,
+            due_time: assignment.due_time,
+            max_marks: assignment.max_marks,
+            subject_name: assignment.subject_name,
+            is_completed: assignment.is_completed,
+            submission_date: assignment.submission_date,
+            marks_obtained: assignment.marks_obtained,
+            feedback: assignment.feedback,
+            start: new Date(assignment.due_date).toISOString(),
+            allDay: true,
+            color: "green", // Assignment events in green
+          }));
+        
+        setCurrentEvents(assignmentEvents);
+      } catch (error) {
+        console.error("Error fetching assignments:", error);
       }
-    }
-  }, []);
+    };
 
-  useEffect(() => {
-    // Save events to local storage whenever they change
-    if (typeof window !== "undefined") {
-      localStorage.setItem("events", JSON.stringify(currentEvents));
-    }
-  }, [currentEvents]);
-
-  const handleDateClick = () => {
-    setSelectedDate(selectedDate);
+    fetchData();
+  }, [params.student_id]);
+  
+  // Handle clicking an event in the calendar
+  const handleDateClick = (selected) => {
+    const clickedDate = selected.startStr;
+    setSelectedDate(clickedDate);
+    const eventsForDate = currentEvents.filter(event => event.start.startsWith(clickedDate));
+    setSelectedEvents(eventsForDate);
     setIsDialogOpen(true);
   };
 
-  const handleEventClick = () => {
-    // Prompt user for confirmation before deleting an event
-    if (
-      window.confirm(
-        `Are you sure you want to delete the event "${selected.event.title}"?`
-      )
-    ) {
-      selected.event.remove();
-    }
-  };
-
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    setNewEventTitle("");
-  };
-
-  const handleAddEvent = () => {
-    e.preventDefault();
-    if (newEventTitle && selectedDate) {
-      const calendarApi = selectedDate.view.calendar; // Get the calendar API instance.
-      calendarApi.unselect(); // Unselect the date range.
-
-      const newEvent = {
-        id: `${selectedDate.start.toISOString()}-${newEventTitle}`,
-        title: newEventTitle,
-        start: selectedDate.start,
-        end: selectedDate.end,
-        allDay: selectedDate.allDay,
-      };
-
-      calendarApi.addEvent(newEvent);
-      handleCloseDialog();
-    }
+  // Handle clicking an event from the events list
+  const handleEventClickFromList = (event) => {
+    setSelectedDate(event.due_date);
+    setSelectedEvents([event]); // Set only the clicked event
+    setIsDialogOpen(true);
   };
 
   return (
-    <Card>
-      <CardHeader>
-          <CardTitle>Event Schedules</CardTitle>
-      </CardHeader>
-      <CardContent >
-
-      <div className="flex px-10 justify-start items-start gap-8">
-        <div className="w-[900px]">
-          <FullCalendar
-            height={"340px"}
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} // Initialize calendar with required plugins.
-            headerToolbar={{
-              left: "prev,next",
-              center: "title",
-              right: "dayGridMonth,timeGridWeek",
-            }} // Set header toolbar options.
-            initialView="dayGridMonth" // Initial view mode of the calendar.
-            editable={true} // Allow events to be edited.
-            selectable={true} // Allow dates to be selectable.
-            selectMirror={true} // Mirror selections visually.
-            dayMaxEvents={true} // Limit the number of events displayed per day.
-            select={handleDateClick} // Handle date selection to create new events.
-            eventClick={handleEventClick} // Handle clicking on events (e.g., to delete them).
-            eventsSet={(events) => setCurrentEvents(events)} // Update state with current events whenever they change.
-            initialEvents={
-              typeof window !== "undefined"
-              ? JSON.parse(localStorage.getItem("events") || "[]")
-                : []
-              } // Initial events loaded from local storage.
+    <div className="">
+      <Card className="p-5">
+        <CardContent>
+          <div className="flex flex-col md:flex-row w-full justify-start items-start gap-8">
+            {/* Events List */}
+            <div className="w-full md:w-3/12">
+              <div className="py-2 text-md font-extrabold px-1">Calendar Events</div>
+              <ul className="space-y-4">
+                {currentEvents.length === 0 && (
+                  <div className="italic text-center text-gray-400">No Events Present</div>
+                )}
+                {currentEvents.map((event) => (
+                  <li
+                    key={event.id}
+                    className={`cursor-pointer border border-gray-200 shadow p-2 rounded-md ${
+                      event.color === "green" ? "text-green-800" : "text-blue-800"
+                    }`}
+                    onClick={() => handleEventClickFromList(event)}
+                  >
+                    <div>
+                      <p className="text-xs text-gray-600">Due: {event.due_date}</p>
+                      <p className="font-medium text-gray-800">{event.title}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            {/* Calendar */}
+            <div className="w-full md:w-9/12">
+              <FullCalendar
+                height="360px"
+                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                headerToolbar={{
+                  left: "",
+                  center: "title",
+                  right: "prev,next today",
+                }}
+                initialView="dayGridMonth"
+                selectable
+                select={handleDateClick}
+                events={currentEvents}
               />
-        </div>
-      </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Dialog for adding new events */}
+      {/* Dialog for Event Details */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New Event Details</DialogTitle>
+            <DialogTitle>Event Details</DialogTitle>
           </DialogHeader>
-          <form className="space-x-5 mb-4" onSubmit={handleAddEvent}>
-            <input
-              type="text"
-              placeholder="Event Title"
-              value={newEventTitle}
-              onChange={(e) => setNewEventTitle(e.target.value)} // Update new event title as the user types.
-              required
-              className="border border-gray-200 p-3 rounded-md text-lg"
-              />
-            <button
-              className="bg-green-500 text-white p-3 mt-5 rounded-md"
-              type="submit"
-              >
-              Add
-            </button>{" "}
-            {/* Button to submit new event */}
-          </form>
+          {selectedEvents.length > 0 ? (
+            selectedEvents.map((event, index) => (
+              <div key={index} className="p-2 border-b border-gray-200">
+                <p className="font-semibold">{event.title}</p>
+                <p className="text-sm text-gray-600">Subject: {event.subject_name}</p>
+                <p className="text-sm text-gray-600">Due Date: {event.due_date}</p>
+                {event.due_time && <p className="text-sm text-gray-600">Due Time: {event.due_time}</p>}
+                <p className="text-sm text-gray-600">Max Marks: {event.max_marks}</p>
+                {event.is_completed && <p className="text-sm text-green-600">Completed</p>}
+                {event.submission_date && <p className="text-sm text-gray-600">Submitted on: {event.submission_date}</p>}
+                {event.marks_obtained !== null && <p className="text-sm text-gray-600">Marks: {event.marks_obtained}/{event.max_marks}</p>}
+                {event.feedback && <p className="text-sm text-gray-600">Feedback: {event.feedback}</p>}
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-400">No events on this day</p>
+          )}
         </DialogContent>
       </Dialog>
-              </CardContent>
-    </Card>
+    </div>
   );
 };
 
+export default Calendar;
