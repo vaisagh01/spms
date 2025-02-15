@@ -27,19 +27,19 @@ const data = {
       items: [
         {
           title: "Course home",
-          url: "student/4"
+          url: "student/2"
         },
         {
           title: "Course Plan",
-          url: "student/4/curricular/courses",
+          url: "student/2/curricular/courses",
         },
         {
           title: "Assignments",
-          url: "student/4/curricular/assignments",
+          url: "student/2/curricular/assignments",
         },
         {
           title: "Assessments",
-          url: "student/4/curricular/marks",
+          url: "student/2/curricular/marks",
         },
       ],
     },
@@ -53,19 +53,19 @@ const data = {
         {
           title: "Clubs home",
           url: "#",
-          url: "student/4/extra-curricular"
+          url: "student/2/extra-curricular"
         },
         {
           title: "Clubs",
-          url: "student/4/extra-curricular/clubs"
+          url: "student/2/extra-curricular/clubs"
         },
         {
           title: "Events",
-          url: "student/4/extra-curricular/events",
+          url: "student/2/extra-curricular/events",
         },
         {
           title: "Acheivements",
-          url: "student/4/extra-curricular/achievements",
+          url: "student/2/extra-curricular/achievements",
         },
       ],
     },
@@ -92,7 +92,6 @@ const data = {
   
 export default function StudentLayout({ children }) {
   const { user } = useUser();
-  console.log(data.user.name = user.name, data.user.email = user.email);
   
   return (
     <div>

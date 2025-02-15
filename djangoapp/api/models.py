@@ -1,5 +1,13 @@
 from django.db import models
 
+SEMESTER_CHOICES = [
+    (1, "Semester 1"),
+    (2, "Semester 2"),
+    (3, "Semester 3"),
+    (4, "Semester 4"),
+    (5, "Semester 5"),
+    (6, "Semester 6"),
+]
 class Course(models.Model):
     course_id = models.AutoField(primary_key=True)
     course_name = models.CharField(max_length=255)
@@ -9,14 +17,6 @@ class Course(models.Model):
     def __str__(self):
         return self.course_name
 class Student(models.Model):
-    SEMESTER_CHOICES = [
-        (1, "Semester 1"),
-        (2, "Semester 2"),
-        (3, "Semester 3"),
-        (4, "Semester 4"),
-        (5, "Semester 5"),
-        (6, "Semester 6"),
-    ]
     student_id = models.AutoField(primary_key=True)  # Primary Key
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
@@ -84,7 +84,7 @@ class Subject(models.Model):
     subject_id = models.AutoField(primary_key=True)
     subject_name = models.CharField(max_length=255)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="subjects")
-    semester = models.IntegerField()
+    semester = models.IntegerField(choices=SEMESTER_CHOICES, default=1) 
     teacher = models.ForeignKey(
         Teacher, on_delete=models.CASCADE, related_name="subjects_taught"
     )  # Changed related_name
@@ -135,15 +135,16 @@ class StudentMarks(models.Model):
 class Assignment(models.Model):
     assignment_id = models.AutoField(primary_key=True)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="assignments")
-    semester = models.IntegerField()
+    semester = models.IntegerField(choices=SEMESTER_CHOICES, default=1) 
     title = models.CharField(max_length=255)
     description = models.TextField()
     due_date = models.DateField()
+    due_time = models.TimeField(null=True, blank=True)  # ⏰ Added due_time field
     max_marks = models.IntegerField()
 
     def __str__(self):
         return self.title
-
+    
 class AssignmentSubmission(models.Model):
     submission_id = models.AutoField(primary_key=True)
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name="submissions")
@@ -154,6 +155,7 @@ class AssignmentSubmission(models.Model):
 
     def __str__(self):
         return f"{self.student.first_name} {self.student.last_name} - {self.assignment.title}"
+
 class Semester(models.Model):
     semester_id = models.AutoField(primary_key=True)
     semester_no = models.IntegerField(unique=True)

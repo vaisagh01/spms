@@ -14,7 +14,7 @@ const page = () => {
 
   const onSubmit = (data) => {
     console.log('Login Data:', data);
-    router.push(`/student/1`)
+    router.push(`/student/2`)
   };
 
   return (

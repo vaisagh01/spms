@@ -1,96 +1,113 @@
 "use client"
-import {React,useState} from 'react'
-import { useUser } from '@/app/context/UserContext';
+import { React, useState, useEffect } from 'react';
 import MyCard from '@/components/MyCard';
 import { ArrowLeft } from 'lucide-react';
-import { useParams } from 'next/navigation';
-const semesters = [
-  {title: "Semester 1"},
-  {title: "Semester 2"},
-  {title: "Semester 3"},
-  {title: "Semester 4"},
-  {title: "Semester 5"},
-  {title: "Semester 6"},
-  
-]
+import { useParams, useRouter } from 'next/navigation';
+import axios from 'axios';
+import MySubjectCard from '../../components/MySubjectCard';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const subjects = [
-  {
-    title: "Subject 1",
-    img: "club_image.jpg",
-    desc: "SC2",
-    button: true
-  },
-  
-  {
-    title: "Subject 2",
-    img: "club_image.jpg",
-    desc: "SC2",
-    button: true
-  },
-  {
-    title: "Subject 3",
-    img: "club_image.jpg",
-    desc: "SC3",
-    button: true
-  },
-  {
-    title: "Subject 4",
-    img: "club_image.jpg",
-    desc: "SC4",
-    button: true
-  },
-  {
-    title: "Subject 5",
-    img: "club_image.jpg",
-    desc: "SC5",
-    button: true
-  },
-  {
-    title: "Subject 6",
-    img: "club_image.jpg",
-    desc: "SC6",
-    button: true
-  },
+const API_BASE_URL = "http://localhost:8000/api";
 
-]
-
-const page = () => {
-  const user = useUser();
+const Page = () => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedSemester, setSelectedSemester] = useState(null); // State for selected semester
   const params = useParams();
-  const student_id = params.student_id;
-  console.log(student_id);
-  
+  const router = useRouter();
+
+  useEffect(() => {
+    const id = params.student_id;
+
+    if (!id) {
+      setError("No student ID provided");
+      setLoading(false);
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/subjects/student/${id}/`);
+        setData(response.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [params.student_id]); // Re-run effect when student_id changes
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  // Extract unique semesters from subjects
+  const semesters = [...new Set(data.subjects.map(subject => subject.semester))];
+
+  // Filter subjects based on selected semester
+  const filteredSubjects = selectedSemester
+    ? data.subjects.filter(subject => subject.semester === Number(selectedSemester))
+    : data.subjects.filter(subject => subject.semester === data.current_semester); // Show all subjects if no semester is selected
+
   return (
     <div className='p-4'>
       <div className='flex flex-1 flex-col space-y-2'>
         <div className='flex items-center gap-7 space-y-2 my-4'>
-
-          <div className='mt-2'>
+          <div className='mt-2 cursor-pointer' onClick={() => router.back()}>
             <ArrowLeft />
           </div>
 
           <h2 className='text-4xl font-bold tracking-tight'>
-            Course Plan for Semester {student_id}
+            Course Plan for {data.course_name}
           </h2>
         </div>
 
+        {/* Semester Selection Dropdown */}
         <div className='flex justify-between items-center py-4'>
           <div className='flex gap-2'>
-            {/* <MySelect data={semesters} /> */}
+            <Select defaultValue={data.current_semester.toString()} onValueChange={setSelectedSemester}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select Semester" />
+              </SelectTrigger>
+              <SelectContent>
+                {semesters.map((sem, index) => (
+                  <SelectItem key={index} value={sem.toString()}>
+                    Semester {sem}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
+        {/* Display Filtered Subjects */}
         <div className='grid gap-4 md:grid-cols-4 lg:grid-cols-4'>
-          {subjects.map((item,index) => (
-            <div key={index} className='hover:' onClick={()=>{router.push('courses/subjects')}}>
-              <MyCard key={index} data={item}/>
+          {filteredSubjects.map((item, index) => (
+            <div 
+              key={index} 
+              className='cursor-pointer' 
+              onClick={() => { router.push(`courses/${item.subject_id}?subject=${encodeURIComponent(item.subject_name)}`); }}
+            >
+              <MySubjectCard key={index} data={item} />
             </div>
           ))}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default page
+export default Page;
