@@ -1,10 +1,9 @@
 "use client"
-import React from 'react'
+import {React,useState} from 'react'
 import { useUser } from '@/app/context/UserContext';
 import MyCard from '@/components/MyCard';
-import MySelect from '@/components/MySelect';
 import { ArrowLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation';
 const semesters = [
   {title: "Semester 1"},
   {title: "Semester 2"},
@@ -58,7 +57,9 @@ const subjects = [
 
 const page = () => {
   const user = useUser();
-  const router = useRouter()
+  const params = useParams();
+  const student_id = params.student_id;
+  console.log(student_id);
   
   return (
     <div className='p-4'>
@@ -70,7 +71,7 @@ const page = () => {
           </div>
 
           <h2 className='text-4xl font-bold tracking-tight'>
-            Course Plan for Semester 1
+            Course Plan for Semester {student_id}
           </h2>
         </div>
 
@@ -82,7 +83,7 @@ const page = () => {
 
         <div className='grid gap-4 md:grid-cols-4 lg:grid-cols-4'>
           {subjects.map((item,index) => (
-            <div onClick={()=>{router.push('courses/subjects')}}>
+            <div key={index} className='hover:' onClick={()=>{router.push('courses/subjects')}}>
               <MyCard key={index} data={item}/>
             </div>
           ))}

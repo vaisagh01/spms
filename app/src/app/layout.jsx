@@ -1,4 +1,12 @@
 "use client"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import "./globals.css";
 import { UserProvider } from "./context/UserContext";
 import { Poppins, Raleway } from "next/font/google";
@@ -43,6 +51,18 @@ export default function RootLayout({ children }) {
             </div>
           )}
           {children}
+          <Sheet>
+            <SheetTrigger>Open</SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Are you absolutely sure?</SheetTitle>
+                <SheetDescription>
+                  This action cannot be undone. This will permanently delete your account
+                  and remove your data from our servers.
+                </SheetDescription>
+              </SheetHeader>
+            </SheetContent>
+          </Sheet>
         </body>
       </UserProvider>
     </html>

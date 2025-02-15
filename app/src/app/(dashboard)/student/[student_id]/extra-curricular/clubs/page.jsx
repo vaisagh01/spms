@@ -3,9 +3,12 @@ import MyCard from '@/components/MyCard'
 import Notifications from '../../components/Notifications'
 import UpcomingEvents from '../../components/UpcomingEvents'
 import { useUser } from '@/app/context/UserContext'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import axios from 'axios'
 const clubs = [
   {
+    id:1,
     title: "Club 1",
     img: "club_image.jpg",
     desc: "SC2",
@@ -13,30 +16,35 @@ const clubs = [
   },
   
   {
+    id:2,
     title: "Club 2",
     img: "club_image.jpg",
     desc: "SC2",
     // button: true
   },
   {
+    id:3,
     title: "Club 3",
     img: "club_image.jpg",
     desc: "SC3",
     // button: true
   },
   {
+    id:4,
     title: "Club 4",
     img: "club_image.jpg",
     desc: "SC4",
     // button: true
   },
   {
+    id:5,
     title: "Club 5",
     img: "club_image.jpg",
     desc: "SC5",
     // button: true
   },
   {
+    id:6,
     title: "Club 6",
     img: "club_image.jpg",
     desc: "SC6",
@@ -47,7 +55,7 @@ const clubs = [
 const page = () => {
   const {user} = useUser();
   const axios = require('axios');  // Only needed if you're using Node.js
-
+  const router = useRouter()
   axios.get('http://127.0.0.1:8000/api/clubs/')
     .then(response => {
       console.log("Clubs Data:", response.data);  // This will log the clubs' JSON data
@@ -67,7 +75,9 @@ const page = () => {
 
         <div className='grid gap-4 md:grid-cols-4 lg:grid-cols-4'>
           {clubs.map((item,index) => (
-            <MyCard key={index} data={item}/>
+            <Link key={index} href={`clubs/${item.id}`}>
+              <MyCard data={item} />
+            </Link>
           ))}
         </div>
       </div>

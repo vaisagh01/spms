@@ -4,7 +4,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { useUser } from "@/app/context/UserContext";
 import Header from "@/components/Header";
-import "../../globals.css";
+import '../../../globals.css'
 const data = {
   user: {
     name: "Student",
@@ -27,19 +27,19 @@ const data = {
       items: [
         {
           title: "Course home",
-          url: "#"
+          url: "student/4"
         },
         {
           title: "Course Plan",
-          url: "student/curricular/courses",
+          url: "student/4/curricular/courses",
         },
         {
           title: "Assignments",
-          url: "student/curricular/assignments",
+          url: "student/4/curricular/assignments",
         },
         {
           title: "Assessments",
-          url: "student/curricular/marks",
+          url: "student/4/curricular/marks",
         },
       ],
     },
@@ -53,19 +53,19 @@ const data = {
         {
           title: "Clubs home",
           url: "#",
-          url: "student/extra-curricular"
+          url: "student/4/extra-curricular"
         },
         {
           title: "Clubs",
-          url: "student/extra-curricular/clubs"
+          url: "student/4/extra-curricular/clubs"
         },
         {
           title: "Events",
-          url: "student/extra-curricular/events",
+          url: "student/4/extra-curricular/events",
         },
         {
           title: "Acheivements",
-          url: "student/extra-curricular/achievements",
+          url: "student/4/extra-curricular/achievements",
         },
       ],
     },

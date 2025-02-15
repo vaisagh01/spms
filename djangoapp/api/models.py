@@ -1,6 +1,22 @@
 from django.db import models
 
+class Course(models.Model):
+    course_id = models.AutoField(primary_key=True)
+    course_name = models.CharField(max_length=255)
+    department = models.CharField(max_length=255)
+    credits = models.IntegerField()
+
+    def __str__(self):
+        return self.course_name
 class Student(models.Model):
+    SEMESTER_CHOICES = [
+        (1, "Semester 1"),
+        (2, "Semester 2"),
+        (3, "Semester 3"),
+        (4, "Semester 4"),
+        (5, "Semester 5"),
+        (6, "Semester 6"),
+    ]
     student_id = models.AutoField(primary_key=True)  # Primary Key
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
@@ -8,11 +24,12 @@ class Student(models.Model):
     phone_number = models.CharField(max_length=15, blank=True, null=True)  # Optional field
     date_of_birth = models.DateField()
     enrollment_number = models.CharField(max_length=20, unique=True)  # Unique enrollment number
-    course = models.CharField(max_length=100)  # Course name
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, default=1)  # Course name
     year_of_study = models.IntegerField()  # Year of study (e.g., 1, 2, 3, 4)
+    semester = models.IntegerField(choices=SEMESTER_CHOICES, default=1) 
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.enrollment_number})"
+        return f"{self.first_name} {self.last_name} ({self.enrollment_number}) - Semester {self.semester}"
 
 class Club(models.Model):
     club_id = models.AutoField(primary_key=True)
@@ -45,14 +62,7 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
-class Course(models.Model):
-    course_id = models.AutoField(primary_key=True)
-    course_name = models.CharField(max_length=255)
-    department = models.CharField(max_length=255)
-    credits = models.IntegerField()
 
-    def __str__(self):
-        return self.course_name
 class Teacher(models.Model):
     teacher_id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=100)

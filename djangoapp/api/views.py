@@ -11,8 +11,9 @@ def get_student_details(request, student_id):
         "last_name": student.last_name,
         "email": student.email,
         "enrollment_number": student.enrollment_number,
-        "course": student.course,
-        "year_of_study": student.year_of_study
+        "year_of_study": student.year_of_study,
+        "semester": student.semester,  # Directly use the integer value
+        "course": student.course.course_name,
     }
     return JsonResponse({"student": student_data})
 
@@ -26,7 +27,26 @@ def get_subject_by_semester(request, semester_no):
 
     } for subject in subjects]
     return JsonResponse({"subjects": subjects_data})
+def get_subjects_by_student(request, student_id):
+    student = get_object_or_404(Student, pk=student_id)
+    subjects = Subject.objects.filter(course=student.course, semester=student.semester).select_related("teacher")
 
+    subjects_data = [{
+        "subject_name": subject.subject_name,
+        "subject_code": subject.subject_code,
+        "teacher_name": f"{subject.teacher.first_name} {subject.teacher.last_name}",
+    } for subject in subjects]
+
+    return JsonResponse({
+        "student": {
+            "first_name": student.first_name,
+            "last_name": student.last_name,
+            "enrollment_number": student.enrollment_number,
+            "course": student.course.course_name,
+            "semester": student.semester,
+        },
+        "subjects": subjects_data
+    })
 def get_assignments_by_subject(request, subject_id):
     assignments = Assignment.objects.filter(subject_id=subject_id)
     assignments_data = [{
