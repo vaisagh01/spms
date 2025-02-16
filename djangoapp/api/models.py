@@ -113,9 +113,11 @@ class Chapter(models.Model):
     def __str__(self):
         return self.chapter_name
 
+from django.db import models
+
 class Assessment(models.Model):
     assessment_id = models.AutoField(primary_key=True)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="assessments")
+    subject = models.ForeignKey("Subject", on_delete=models.CASCADE, related_name="assessments")
     assessment_type = models.CharField(max_length=255)
     total_marks = models.IntegerField()
     date_conducted = models.DateField()
@@ -126,8 +128,11 @@ class Assessment(models.Model):
 class StudentMarks(models.Model):
     marks_id = models.AutoField(primary_key=True)
     assessment = models.ForeignKey(Assessment, on_delete=models.CASCADE, related_name="student_marks")
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="marks")
+    student = models.ForeignKey("Student", on_delete=models.CASCADE, related_name="marks")
     marks_obtained = models.IntegerField()
+
+    class Meta:
+        unique_together = ("assessment", "student")  # Ensures one student has only one mark per assessment
 
     def __str__(self):
         return f"{self.student.first_name} {self.student.last_name} - {self.marks_obtained} marks"

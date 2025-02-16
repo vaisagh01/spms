@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
-from .models import Student, Club, Event, ClubMembers, Subject, Semester, Teacher, Assignment, Topic, Chapter, AssignmentSubmission
+from .models import Student, Club, Event, ClubMembers, Subject, Semester, Teacher, Assignment, Topic, Chapter, AssignmentSubmission, StudentMarks, Assessment
 from .serializers import StudentSerializer, ClubSerializer, EventSerializer, SubjectSerializer, AssignmentSerializer, TopicSerializer, ChapterSerializer
 
 def get_student_details(request, student_id):
@@ -27,6 +27,7 @@ def get_subject_by_semester(request, semester_no):
 
     } for subject in subjects]
     return JsonResponse({"subjects": subjects_data})
+
 def get_subjects_by_student(request, student_id):
     try:
         student = get_object_or_404(Student, pk=student_id)
@@ -52,28 +53,6 @@ def get_subjects_by_student(request, student_id):
         return JsonResponse({"subjects": subjects_data, "course_name": course_name, "current_semester": current_semester})
     except Student.DoesNotExist:
         return JsonResponse({"error": "Student not found"}, status=404)
-
-# def get_subjects_by_student(request, student_id):
-#     student = get_object_or_404(Student, pk=student_id)
-#     subjects = Subject.objects.filter(course=student.course, semester=student.semester).select_related("teacher")
-
-#     subjects_data = [{
-#         "subject_id": subject.subject_id,
-#         "subject_name": subject.subject_name,
-#         "subject_code": subject.subject_code,
-#         "teacher_name": f"{subject.teacher.first_name} {subject.teacher.last_name}",
-#     } for subject in subjects]
-
-#     return JsonResponse({
-#         "student": {
-#             "first_name": student.first_name,
-#             "last_name": student.last_name,
-#             "enrollment_number": student.enrollment_number,
-#             "course": student.course.course_name,
-#             "semester": student.semester,
-#         },
-#         "subjects": subjects_data
-#     })
     
 def get_assignments_by_subject(request, subject_id):
     assignments = Assignment.objects.filter(subject_id=subject_id)
@@ -85,11 +64,6 @@ def get_assignments_by_subject(request, subject_id):
         "max_marks": assignment.max_marks
     } for assignment in assignments]
     return JsonResponse({"assignments": assignments_data})
-
-from django.http import JsonResponse
-from django.db.models import Prefetch
-from datetime import datetime
-from .models import Student, Assignment, AssignmentSubmission
 
 def get_assignments_by_student(request, student_id):
     try:
@@ -154,24 +128,46 @@ def get_chapters_by_topic(request, topic_id):
         "description": chapter.description
     } for chapter in chapters]
     return JsonResponse({"chapters": chapters_data})
+def get_assessments_and_marks_by_student(request, student_id):
+    # Get the student and their course & semester
+    student = get_object_or_404(Student, student_id=student_id)
+    course_id = student.course_id
+    semester_no = student.semester
 
-def get_assignments_by_semester_and_course(request, semester_no, course_id):
-    assignments = Assignment.objects.filter(
-        semester=semester_no,
-        subject__course_id=course_id  # Filtering by course_id via Subject model
+    # Fetch assessments for the student's course and semester
+    assessments = Assessment.objects.filter(
+        subject__course_id=course_id,
     ).select_related("subject")
 
-    assignments_data = [{
-        "assignment_id": assignment.assignment_id,
-        "title": assignment.title,
-        "description": assignment.description,
-        "due_date": assignment.due_date.strftime("%Y-%m-%d"),  # Convert date to string
-        "max_marks": assignment.max_marks,
-        "subject_name": assignment.subject.subject_name,  # Include subject name
-        "subject_code": assignment.subject.subject_code,
-    } for assignment in assignments]
+    # Fetch marks for the student related to assessments
+    student_marks = StudentMarks.objects.filter(student=student).select_related("assessment")
 
-    return JsonResponse({"assignments": assignments_data})
+    # Organize assessment data
+    assessments_data = [{
+        "assessment_id": assessment.assessment_id,
+        "assessment_type": assessment.assessment_type,
+        "total_marks": assessment.total_marks,
+        "date_conducted": assessment.date_conducted.strftime("%Y-%m-%d"),
+        "subject_name": assessment.subject.subject_name,
+        "subject_code": assessment.subject.subject_code,
+    } for assessment in assessments]
+
+    # Organize marks data
+    marks_data = [{
+        "assessment_id": mark.assessment.assessment_id,
+        "assessment_type": mark.assessment.assessment_type,
+        "marks_obtained": mark.marks_obtained,
+        "total_marks": mark.assessment.total_marks
+    } for mark in student_marks]
+
+    return JsonResponse({
+        "student_id": student_id,
+        "student_name": f"{student.first_name} {student.last_name}",
+        "course_name": student.course.course_name,
+        "semester": semester_no,
+        "assessments": assessments_data,
+        "marks": marks_data
+    })
 
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()

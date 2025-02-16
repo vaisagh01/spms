@@ -10,8 +10,9 @@ const MySubjectCard = ({data}) => {
   return (
     <Card className="hover:bg-slate-100">
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-xl font-bold'>
-            {data?.subject_name} {data?.subject_code}
+            <CardTitle className='text-xl font-bold flex justify-between w-full'>
+              <p>{data?.subject_name}</p>
+              <p className='text-slate-500'>{data?.subject_code}</p>
             </CardTitle>
         </CardHeader>
         <CardContent>
