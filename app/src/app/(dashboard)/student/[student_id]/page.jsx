@@ -29,7 +29,6 @@ const Page = () => {
 
     fetchStudentDetails();
   }, [params.student_id]);
-  console.log(studentDetails);
   
   return (
     <div className="p-4">
@@ -40,11 +39,11 @@ const Page = () => {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-5 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-6 lg:grid-cols-6">
           <div className="col-span-2 md:col-span-2">
             <AllAssignments />
           </div>
-          <div className="col-span-3 md:col-span-3">{<EventDates />}</div>
+          <div className="col-span-4 md:col-span-4">{<EventDates />}</div>
           <div className="col-span-4 md:col-span-3">{<Notifications />}</div>
           <div className="col-span-4 md:col-span-3">{<Notifications />}</div>
         </div>

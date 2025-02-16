@@ -5,6 +5,8 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import EventDates from "../../components/EventDates";
 import AllAssignments from "../../components/AllAssignments";
+import UpcomingTests from "../../components/UpcomingTests";
+import AssessmentMarks from "../../components/AssessmentMarks";
 
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 
@@ -37,14 +39,28 @@ const Page = () => {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-5 lg:grid-cols-5">
-          <div className="col-span-2 md:col-span-2">
-            <AllAssignments />
-          </div>
-          <div className="col-span-3 md:col-span-3">{<EventDates />}</div>
-          <div className="col-span-4 md:col-span-3">{<Notifications />}</div>
-          <div className="col-span-4 md:col-span-3">{<Notifications />}</div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-6 lg:grid-cols-6">
+        {/* Upcoming Tests - Takes 3 columns on medium & large screens */}
+        <div className="col-span-1 md:col-span-3">
+          <UpcomingTests />
         </div>
+
+        {/* Assessment Marks - Takes 3 columns on medium & large screens */}
+        <div className="col-span-1 md:col-span-3">
+          <AssessmentMarks />
+        </div>
+
+        {/* Event Dates - Always spans full width (6 columns) */}
+        {/* <div className="col-span-1 md:col-span-6">
+          <EventDates />
+        </div> */}
+
+        {/* Notifications - Takes 3 columns on medium & large screens */}
+        {/* <div className="col-span-1 md:col-span-3">
+          <Notifications />
+        </div> */}
+      </div>
+
       </div>
     </div>
   );

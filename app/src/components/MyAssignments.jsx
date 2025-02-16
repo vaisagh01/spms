@@ -54,8 +54,8 @@ const MyAssignments = ({ data }) => {
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-xl flex w-full justify-between items-center font-bold">
           <div className='flex flex-col gap-3'>
-            <p>{data?.title}</p>
-            <p className='text-md text-slate-600'>{data?.subject_name}</p>
+            <div>{data?.title}</div>
+            <div className='text-md text-slate-600'>{data?.subject_name}</div>
           </div>
           <span className="text-sm font-light">
             Due date: {data.due_date} {data.time && `- ${data.time}`}
@@ -64,7 +64,7 @@ const MyAssignments = ({ data }) => {
       </CardHeader>
 
       <CardContent className="flex items-center justify-between">
-        <p className="w-[79%] text-wrap">{data?.description}</p>
+        <div className="w-[79%] text-wrap">{data?.description}</div>
         <span
           className={`text-sm px-2 py-1 rounded ${
             statusText === 'Missing'
