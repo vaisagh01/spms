@@ -20,6 +20,10 @@ import json
 from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import reverse
 from .serializers import AttendanceSerializer, StudentMarksSerializer, AssignmentSerializer, ClubMemberSerializer, EventSerializer, ClubSerializer, ClubMemberSerializer
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated
+from django.db import transaction  # Import transaction
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 User = get_user_model()
 
@@ -77,54 +81,49 @@ class StudentViewSet(viewsets.ModelViewSet):
 
 # === EVENT VIEWSET ===
 
-class StudentDashboardView(generics.RetrieveAPIView):
-    permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
-        student = request.user  # Get the logged-in student
-
-        # Fetch attendance records
-        attendance = Attendance.objects.filter(student=student).order_by("-date")
-
-        # Fetch marks
-        marks = StudentMarks.objects.filter(student=student).order_by("semester")
-
-        # Fetch assignments
-        assignments = Assignment.objects.filter(assigned_to=student).order_by("due_date")
-
-        # Fetch clubs
-        clubs = ClubMembers.objects.filter(student=student).select_related("club")
-
-        return Response({
-            "attendance": AttendanceSerializer(attendance, many=True).data,
-            "marks": StudentMarksSerializer(marks, many=True).data,
-            "assignments": AssignmentSerializer(assignments, many=True).data,
-            "clubs": ClubMemberSerializer(clubs, many=True).data
-        })
     
 class  ClubViewSet(viewsets.ModelViewSet):
     queryset = Club.objects.all()
     serializer_class = ClubSerializer
-    permission_classes = [permissions.IsAdminUser]  # Only Admin can create/edit clubs
+
+    def get_permissions(self):
+        """Allow all users to view clubs, but only admins can create/edit"""
+        if self.action in ['list', 'retrieve']:  # View clubs
+            return [permissions.AllowAny()]  # Or use IsAuthenticated if login is required
+        return [permissions.IsAdminUser()]  # Create/Edit/Delete only for Admins
 
     def create(self, request, *args, **kwargs):
         """Admin Creates a Club & Assigns a Leader"""
+        if not request.user.is_staff:
+            return Response(
+                {"detail": "You do not have permission to create a club."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         leader_id = request.data.get("leader")
         leader = get_object_or_404(Student, pk=leader_id)
+        print(f"Leader found: {leader}")
 
-        club = Club.objects.create(
-            club_name=request.data["club_name"],
-            club_category=request.data["club_category"],
-            faculty_incharge=request.data["faculty_incharge"],
-            leader=leader,
-        )
-    
+        try:
+            with transaction.atomic():  # Ensure both Club and ClubMembers are created together
+                club = Club.objects.create(
+                    club_name=request.data["club_name"],
+                    club_category=request.data["club_category"],
+                    faculty_incharge=request.data["faculty_incharge"],
+                    leader=leader,
+                )
+                print(f"Club Created: {club}")
 
-        # Auto-add the leader as a club member
-        ClubMembers.objects.create(student=leader, club=club, role_in_club="Leader")
+                # ✅ Ensure leader is added as a member immediately
+                member = ClubMembers.objects.create(student=leader, club=club, role_in_club="Leader")
+                print(f"Leader added to ClubMembers: {member}")
 
-        return Response({"message": "Club created successfully"}, status=status.HTTP_201_CREATED)
+            return Response({"message": "Club created successfully"}, status=status.HTTP_201_CREATED)
 
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     def retrieve(self, request, pk=None):
         """Fetch the club profile with details, members, and events."""
         club = get_object_or_404(Club, pk=pk)
@@ -206,7 +205,8 @@ class EventViewSet(viewsets.ModelViewSet):
 
 
     
-
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  # <-- Restrict access to authenticated users
 def get_clubs(request):
     # Fetch all clubs
     clubs = Club.objects.all()
@@ -218,14 +218,36 @@ def get_clubs(request):
     return JsonResponse({'clubs': clubs_data}, safe=False)
 
 
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])  
+@permission_classes([IsAuthenticated])  
 def get_clubs_by_student(request):
-    student = request.user  # Get logged-in student
+    # 🔥 Manually authenticate user
+    auth = JWTAuthentication()
+    user, token = auth.authenticate(request)  
+
+    if user is None:
+        return JsonResponse({"error": "Invalid or missing token"}, status=401)
+
+    print("🔥 DEBUGGING START 🔥")
+    print(f"👉 Headers: {request.headers}")  
+    print(f"👉 Authorization: {request.headers.get('Authorization')}")  
+    print(f"👉 User from JWT: {user} (ID: {getattr(user, 'id', None)})")  
+    print(f"👉 Is Authenticated: {user.is_authenticated}")  
+
+    # 🔍 Try fetching the user manually to avoid mismatches
+    try:
+        student = Student.objects.get(id=user.id)
+        print(f"✅ Matched Student: {student}")
+    except Student.DoesNotExist:
+        return JsonResponse({"error": "Student not found"}, status=404)
+
+    # Fetch the clubs for the authenticated student
     memberships = ClubMembers.objects.filter(student=student)
-    
-    clubs_data = [{'club_name': membership.club.club_name, 'club_category': membership.club.club_category} for membership in memberships]
+    clubs_data = [{"club_name": m.club.club_name, "club_category": m.club.club_category} for m in memberships]
 
-    return JsonResponse({'student_clubs': clubs_data}, safe=False)
-
+    print(f"🎯 Clubs for {student}: {clubs_data}")  
+    return JsonResponse({"student_clubs": clubs_data}, safe=False)
 @login_required
 def get_events_by_student(request):
     student = request.user
