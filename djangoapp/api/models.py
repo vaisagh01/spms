@@ -3,8 +3,6 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now
 from django.utils import timezone
-
-<<<<<<< HEAD
 SEMESTER_CHOICES = [
     (1, "Semester 1"),
     (2, "Semester 2"),
@@ -13,36 +11,22 @@ SEMESTER_CHOICES = [
     (5, "Semester 5"),
     (6, "Semester 6"),
 ]
-class Course(models.Model):
-    course_id = models.AutoField(primary_key=True)
-    course_name = models.CharField(max_length=255)
-    department = models.CharField(max_length=255)
-    credits = models.IntegerField()
-
-    def __str__(self):
-        return self.course_name
-class Student(models.Model):
-    student_id = models.AutoField(primary_key=True)  # Primary Key
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-=======
 class User(AbstractUser):
     class Role(models.TextChoices):
-        ADMIN = "ADMIN",'Admin'
-        TEACHER = "TEACHER","Teacher"
-        STUDENT = "STUDENT","Student"
-        ALUMNI = "ALUMNI","Alumni"
+        ADMIN = "ADMIN", 'Admin'
+        TEACHER = "TEACHER", "Teacher"
+        STUDENT = "STUDENT", "Student"
+        ALUMNI = "ALUMNI", "Alumni"
 
-    base_role=Role.ADMIN
-
-    role = models.CharField(max_length=10, choices=Role.choices)
+    # default role can be assigned, but it can also be changed
+    role = models.CharField(max_length=10, choices=Role.choices, default=Role.STUDENT)
 
     def save(self, *args, **kwargs):
-        if not self.pk:
-            self.role = self.base_role
+        # If role is not set, assign the default one
+        if not self.pk and not self.role:
+            self.role = self.Role.STUDENT
         return super().save(*args, **kwargs)
-
+    
 class StudentManager(BaseUserManager):
     def query_set(self, args, **kwargs):
         results=super().query_set(*args, **kwargs)
@@ -70,27 +54,28 @@ class StudentManager(BaseUserManager):
 
         return self.create_user(username, email, password,date_of_birth, **extra_fields)
    
+class Course(models.Model):
+    course_id = models.AutoField(primary_key=True)
+    course_name = models.CharField(max_length=255)
+    department = models.CharField(max_length=255)
+    credits = models.IntegerField()
 
-
+    def __str__(self):
+        return self.course_name
+    
 class Student(User):
     base_role = User.Role.STUDENT
     objects=StudentManager()
     student_id = models.AutoField(primary_key=True) 
+    # username = models.CharField(max_length=100)
    # Primary Key
->>>>>>> anne
     phone_number = models.CharField(max_length=15, blank=True, null=True)  # Optional field
     date_of_birth = models.DateField(null=True, blank=True)  # Allow null values
     enrollment_number = models.CharField(max_length=20, unique=True)  # Unique enrollment number
-<<<<<<< HEAD
     course = models.ForeignKey(Course, on_delete=models.CASCADE, default=1)  # Course name
-    year_of_study = models.IntegerField()  # Year of study (e.g., 1, 2, 3, 4)
+    year_of_study = models.IntegerField(null=True, blank=True)  # Year of study (e.g., 1, 2, 3, 4)
     semester = models.IntegerField(choices=SEMESTER_CHOICES, default=1) 
 
-    def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.enrollment_number}) - Semester {self.semester}"
-=======
-    course = models.CharField(max_length=100)  # Course name
-    year_of_study = models.IntegerField(null=True, blank=True)  # Year of study (e.g., 1, 2, 3, 4)
 
     class Meta:
         verbose_name = 'Student'
@@ -119,19 +104,6 @@ class TeacherManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
 
         return self.create_user(username, email, password, **extra_fields)
-    
-class Teacher(User):
-    base_role = User.Role.TEACHER
-    teacher_id = models.AutoField(primary_key=True)
-    department = models.CharField(max_length=100)
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
-
-    objects = TeacherManager()
-
-    class Meta:
-        verbose_name = "Teacher"
-        verbose_name_plural = "Teachers"
-
 class AlumniManager(BaseUserManager):
     def get_queryset(self):
         return super().get_queryset().filter(role=User.Role.ALUMNI)
@@ -157,6 +129,7 @@ class AlumniManager(BaseUserManager):
         return self.create_user(username, email, password, **extra_fields)
 
 class Alumni(User):
+    # username = models.CharField(max_length=100)
     base_role = User.Role.ALUMNI
     alumni_id = models.AutoField(primary_key=True)
     graduation_year = models.IntegerField()  # Year of graduation
@@ -182,91 +155,26 @@ class Attendance(models.Model):
     def __str__(self):
         return f"{self.student.username} - {self.date} - {self.status}"
 
-class Subject(models.Model):
-    name = models.CharField(max_length=255)
-    code = models.CharField(max_length=10, unique=True)
-
-    def __str__(self):
-        return self.name
-
-class StudentMarks(models.Model):
-    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="marks")
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="subject_marks")
-    semester = models.IntegerField()
-    marks = models.FloatField()
-
-    class Meta:
-        unique_together = ("student", "subject", "semester")  # Prevent duplicate entries
-
-class Assignment(models.Model):
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="assignments")
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    due_date = models.DateField()
-    assigned_to = models.ManyToManyField(User, related_name="assignments")
-
-    def __str__(self):
-        return self.title
->>>>>>> anne
-
-class Club(models.Model):
-    club_id = models.AutoField(primary_key=True)
-    club_name = models.CharField(max_length=255, unique=True)
-    club_category = models.CharField(max_length=255)
-    club_description = models.TextField(blank=True, null=True)  # ✅ Added description
-    faculty_incharge = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="clubs_incharge")  # ✅ Better structure
-    created_date = models.DateField(auto_now_add=True)
-    leader = models.OneToOneField("Student", on_delete=models.SET_NULL, null=True, blank=True, related_name="club_leader")  # Only one leader per club
-
-    def __str__(self):
-        return self.club_name
-
-<<<<<<< HEAD
-class ClubMembers(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="club_memberships")
-    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="club_members", default=1)  # Set a default club
-    role_in_club = models.CharField(max_length=255)
-    date_joined = models.DateField(auto_now_add=True)
-    class Meta:
-        unique_together = ('student', 'club')  # Ensure a student cannot join the same club twice
-    def __str__(self):
-        return f"{self.student.first_name} {self.student.last_name} - {self.club.club_name}"
-
-class Event(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField()
-    date = models.DateTimeField()
-    club = models.ForeignKey(Club, related_name='events', on_delete=models.CASCADE)
-    attendees = models.ManyToManyField(Student, related_name='events_attending')
-
-    def __str__(self):
-        return self.name
 
 class Teacher(models.Model):
+    base_role = User.Role.TEACHER
     teacher_id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    phone_no = models.CharField(max_length=15, blank=True, null=True)
+    username = models.CharField(max_length=100)
+    phone_number = models.CharField(max_length=15)
+    is_staff = models.BooleanField(default=False)
     department = models.CharField(max_length=255)
     designation = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
-    subject = models.ForeignKey(
-        'Subject', on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_teachers"
-    )  # Changed related_name
-    courses = models.ManyToManyField(Course, blank=True, related_name="assigned_teachers")
-
     hire_date = models.DateField()
 
-<<<<<<< HEAD
-    def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.designation}"
-=======
     # Temporarily allow null values
     # course = models.ForeignKey('Course', on_delete=models.CASCADE, related_name="teachers")
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.designation})"
->>>>>>> refs/remotes/origin/main
+
 
 class Subject(models.Model):
     subject_id = models.AutoField(primary_key=True)
@@ -357,15 +265,21 @@ class Semester(models.Model):
 
     def __str__(self):
         return f"Semester {self.semester_no}"
-<<<<<<< HEAD
-=======
 
 # def_topic_is_completed
 # def_ get_students_by_course
-# 
->>>>>>> refs/remotes/origin/main
-=======
+class Club(models.Model):
+    club_id = models.AutoField(primary_key=True)
+    club_name = models.CharField(max_length=255, unique=True)
+    club_category = models.CharField(max_length=255)
+    club_description = models.TextField(blank=True, null=True)  # ✅ Added description
+    faculty_incharge = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="clubs_incharge")  # ✅ Better structure
+    created_date = models.DateField(auto_now_add=True)
+    leader = models.OneToOneField("Student", on_delete=models.SET_NULL, null=True, blank=True, related_name="club_leader")  # Only one leader per club
 
+    def __str__(self):
+        return self.club_name
+# 
 # === CLUB MEMBERS MODEL ===
 class ClubMembers(models.Model):
     member_id = models.AutoField(primary_key=True)
@@ -397,5 +311,3 @@ class Event(models.Model):
 
 
 
-
->>>>>>> anne

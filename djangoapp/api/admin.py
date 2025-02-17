@@ -1,29 +1,11 @@
 from django.contrib import admin
-<<<<<<< HEAD
 from .models import (
     Student, Club, ClubMembers, Assignment, Subject, Teacher,  
     Assessment, Course, AssignmentSubmission, Topic, Chapter,
-    StudentMarks# ✅ Added Topic
+    StudentMarks, Alumni, Club, ClubMembers, Event, User
 )
 class TeacherAdmin(admin.ModelAdmin):
     filter_horizontal = ('courses',)  # ✅ Changes multi-select box to a better UI
-
-admin.site.register(Teacher, TeacherAdmin)
-admin.site.register(Student)
-admin.site.register(Club)
-admin.site.register(ClubMembers)
-admin.site.register(Assignment)  # ✅ Register Assignments
-admin.site.register(Subject)  # ✅ Register Subjects
-#admin.site.register(Teacher)  # ✅ Register Teachers
-
-admin.site.register(Assessment)  # ✅ Register Assessments
-admin.site.register(Course)  # ✅ Register Courses
-admin.site.register(AssignmentSubmission)  # ✅ Register Assignment Submissions
-admin.site.register(Topic)  # ✅ Register Topics
-admin.site.register(Chapter)  # ✅ Register Topics
-admin.site.register(StudentMarks)  # ✅ Register Topics
-=======
-from .models import Teacher, User, Student, Alumni, Club, ClubMembers, Event
 
 class ClubAdmin(admin.ModelAdmin):
     list_display = ("club_name", "club_category", "faculty_incharge", "leader")
@@ -67,6 +49,22 @@ class TeacherAdmin(admin.ModelAdmin):
     list_filter = ("department", "is_staff")
     ordering = ("username",)
 
+admin.site.register(Teacher, TeacherAdmin)
+admin.site.register(Student)
+# admin.site.register(Club)
+# admin.site.register(ClubMembers)
+admin.site.register(Assignment)  # ✅ Register Assignments
+admin.site.register(Subject)  # ✅ Register Subjects
+#admin.site.register(Teacher)  # ✅ Register Teachers
+
+admin.site.register(Assessment)  # ✅ Register Assessments
+admin.site.register(Course)  # ✅ Register Courses
+admin.site.register(AssignmentSubmission)  # ✅ Register Assignment Submissions
+admin.site.register(Topic)  # ✅ Register Topics
+admin.site.register(Chapter)  # ✅ Register Topics
+admin.site.register(StudentMarks)  # ✅ Register Topics
+admin.site.register(User)  # ✅ Register Topics
+
 
 
 
@@ -74,12 +72,11 @@ class TeacherAdmin(admin.ModelAdmin):
 admin.site.register(Club, ClubAdmin)
 admin.site.register(ClubMembers, ClubMembersAdmin)
 admin.site.register(Event, EventAdmin)
-admin.site.register(Student, StudentAdmin)
-admin.site.register(Alumni, AlumniAdmin)
-admin.site.register(Teacher, TeacherAdmin)
+# admin.site.register(Student, StudentAdmin)
+# admin.site.register(Alumni, AlumniAdmin)
+# admin.site.register(Teacher, TeacherAdmin)
 
 admin.site.site_header = "Admin Dashboard"
 admin.site.site_title = "Admin Dashboard"
 admin.site.index_title = "Welcome to the Admin Dashboard"
 
->>>>>>> anne

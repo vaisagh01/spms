@@ -1,12 +1,83 @@
-from django.http import JsonResponse
-<<<<<<< HEAD
-from rest_framework import viewsets
-from django.shortcuts import get_object_or_404
-from .models import Student, Club, Event, ClubMembers, Subject, Semester, Teacher, Assignment, Topic, Chapter, AssignmentSubmission, StudentMarks, Assessment
-from .serializers import StudentSerializer, ClubSerializer, EventSerializer, SubjectSerializer, AssignmentSerializer, TopicSerializer, ChapterSerializer
+# Django Core Imports
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import get_object_or_404, render, redirect
+from django.urls import reverse
+from django.contrib.auth import login, get_user_model
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.db import transaction
+from django.core import serializers
+from rest_framework import viewsets, permissions, status, generics
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.decorators import action, api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import RefreshToken
+from .models import (
+    Student, Club, Event, ClubMembers, Subject, Semester, Teacher, 
+    Assignment, Topic, Chapter, AssignmentSubmission, StudentMarks, Assessment, Attendance
+)
+from .serializers import (
+    StudentSerializer, ClubSerializer, EventSerializer, SubjectSerializer, 
+    AssignmentSerializer, TopicSerializer, ChapterSerializer, ClubMemberSerializer, 
+    AttendanceSerializer, StudentMarksSerializer
+)
 import json
+User = get_user_model()
+# @staff_member_required
+# def admin_dashboard(request):
+#     """Redirects admin to Django's built-in management pages."""
+#     return redirect(reverse("admin:index")) 
 
+@login_required
+def admin_dashboard(request):
+    return HttpResponse("Welcome, Admin!")
+
+@login_required
+def teacher_dashboard(request):
+    return HttpResponse("Welcome, Teacher!")
+
+@login_required
+def student_dashboard(request):
+    return HttpResponse("Welcome, Student!")
+
+def alumni_dashboard(request):
+    return HttpResponse("Welcome, Alumni!")
+
+# api login
+@csrf_exempt
+def api_login(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            username = data.get("username")
+            password = data.get("password")
+
+            # Get custom User model
+            User = get_user_model()
+
+            user = User.objects.filter(username=username).first()
+
+            if user and user.check_password(password):
+                login(request, user)
+                return JsonResponse({
+                    "message": "Login successful",
+                    "user": user.username,
+                    "role": user.role
+                })
+            return JsonResponse({"error": "Invalid credentials"}, status=400)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON data"}, status=400)
+
+    return JsonResponse({"message": "Use POST method to login."})
+
+class StudentViewSet(viewsets.ModelViewSet):
+    queryset = Student.objects.all()
+    serializer_class = StudentSerializer
 
 def get_student_details(request, student_id):
     student = get_object_or_404(Student, pk=student_id)
@@ -114,8 +185,6 @@ def get_assessments_and_marks_by_student(request, student_id):
     student = get_object_or_404(Student, student_id=student_id)
     course_id = student.course_id
     semester_no = student.semester
-
-    # Fetch assessments for the student's course and semester
     assessments = Assessment.objects.filter(
         subject__course_id=course_id,
     ).select_related("subject")
@@ -149,82 +218,6 @@ def get_assessments_and_marks_by_student(request, student_id):
         "assessments": assessments_data,
         "marks": marks_data
     })
-=======
-from rest_framework import viewsets, permissions, status, generics
-from .models import Student, Attendance, StudentMarks, Assignment, Event, Club, ClubMembers
-from django.core import serializers
-from django.views.decorators.http import require_http_methods
-from .serializers import StudentSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from rest_framework.decorators import action
-from django.views.decorators.csrf import csrf_exempt
-import json
-from django.contrib.admin.views.decorators import staff_member_required
-from django.urls import reverse
-from .serializers import AttendanceSerializer, StudentMarksSerializer, AssignmentSerializer, ClubMemberSerializer, EventSerializer, ClubSerializer, ClubMemberSerializer
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework.permissions import IsAuthenticated
-from django.db import transaction  # Import transaction
-from rest_framework_simplejwt.authentication import JWTAuthentication
-
-User = get_user_model()
-
-
-@staff_member_required
-def admin_dashboard(request):
-    """Redirects admin to Django's built-in management pages."""
-    return redirect(reverse("admin:index")) 
-
-@login_required
-def admin_dashboard(request):
-    return HttpResponse("Welcome, Admin!")
-
-@login_required
-def teacher_dashboard(request):
-    return HttpResponse("Welcome, Teacher!")
-
-@login_required
-def student_dashboard(request):
-    return HttpResponse("Welcome, Student!")
-
-def alumni_dashboard(request):
-    return HttpResponse("Welcome, Alumni!")
-
-
-
-@csrf_exempt
-def api_login(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            username = data.get("username")
-            password = data.get("password")
-
-            user = authenticate(username=username, password=password)
-            if user:
-                login(request, user)
-                return JsonResponse({
-                    "message": "Login successful",
-                    "user": user.username,
-                    "role": user.role  # Now supports Alumni too!
-                })            
-            return JsonResponse({"error": "Invalid credentials"}, status=400)
-
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON data"}, status=400)
-
-    # Add this for GET request handling
-    return JsonResponse({"message": "Use POST method to login."})
->>>>>>> anne
 
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
@@ -232,10 +225,7 @@ class StudentViewSet(viewsets.ModelViewSet):
 
 
 # === EVENT VIEWSET ===
-
-
-    
-class  ClubViewSet(viewsets.ModelViewSet):
+class ClubViewSet(viewsets.ModelViewSet):
     queryset = Club.objects.all()
     serializer_class = ClubSerializer
 
@@ -276,6 +266,7 @@ class  ClubViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(f"❌ Error: {e}")
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
     def retrieve(self, request, pk=None):
         """Fetch the club profile with details, members, and events."""
         club = get_object_or_404(Club, pk=pk)
@@ -322,10 +313,6 @@ class ClubMembersViewSet(viewsets.ModelViewSet):
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
-<<<<<<< HEAD
-=======
-    permission_classes = [permissions.IsAuthenticated]
->>>>>>> anne
 
     def create(self, request, *args, **kwargs):
         """Leader Creates an Event for Their Club"""
@@ -387,24 +374,61 @@ def get_clubs_by_student(request):
 
     # 🔍 Try fetching the user manually to avoid mismatches
     try:
-<<<<<<< HEAD
-        club = Club.objects.get(club_id=club_id)
-        club_data = {
-            "club_name": club.club_name,
-            "club_category": club.club_category,
-            "faculty_incharge": club.faculty_incharge,
-            "created_date": club.created_date
-        }
-        return JsonResponse({"club": club_data})
-    except Club.DoesNotExist:
-        return JsonResponse({"error": "Club not found"}, status=404)
+        student = Student.objects.get(id=user.id)
+        print(f"✅ Matched Student: {student}")
+    except Student.DoesNotExist:
+        return JsonResponse({"error": "Student not found"}, status=404)
 
-def get_clubs_by_student(request, student_id):
-    student = get_object_or_404(Student, pk=student_id)
-    clubs = Club.objects.filter(club_members__student=student).values(
-        "club_id", "club_name", "club_category", "faculty_incharge", "created_date"
-    )
-    return JsonResponse({"clubs": list(clubs)}, safe=False)
+    # Fetch the clubs for the authenticated student
+    memberships = ClubMembers.objects.filter(student=student)
+    clubs_data = [{"club_name": m.club.club_name, "club_category": m.club.club_category} for m in memberships]
+
+    print(f"🎯 Clubs for {student}: {clubs_data}")  
+    return JsonResponse({"student_clubs": clubs_data}, safe=False)
+
+# @login_required
+def get_events_by_student(request):
+    student = request.user
+    memberships = ClubMembers.objects.filter(student=student)
+    events = Event.objects.filter(club__in=[membership.club for membership in memberships])
+    events_data = [{'event_name': event.event_name, 'event_date': event.event_date, 'club_name': event.club.club_name} for event in events]
+    return JsonResponse({'student_events': events_data}, safe=False)
+
+def get_club_profile(request, club_id):
+    """Fetch club details, members, and events"""
+    club = get_object_or_404(Club, pk=club_id)
+    # Get members
+    members = ClubMembers.objects.filter(club=club)
+    members_data = [
+        {
+            "student_id": member.student.id,
+            "name": member.student.username,
+            "email": member.student.email,
+            "role_in_club": member.role_in_club,
+        }
+        for member in members
+    ]
+    # Get club events
+    events = Event.objects.filter(club=club)
+    events_data = [
+        {
+            "event_id": event.id,
+            "event_name": event.name,
+            "event_date": event.date,
+            "description": event.description,
+        }
+        for event in events
+    ]
+    club_data = {
+        "club_name": club.club_name,
+        "club_category": club.club_category,
+        "faculty_incharge": club.faculty_incharge.username,
+        "leader": club.leader.username,
+        "description": club.club_description,  # Make sure the model has a 'description' field
+        "members": members_data,
+        "events": events_data,
+    }
+    return JsonResponse({"club_profile": club_data}, safe=False)
 
 # now for teachers to add assignment
 @csrf_exempt
@@ -455,67 +479,3 @@ def post_assignment(request, teacher_id):
     
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-=======
-        student = Student.objects.get(id=user.id)
-        print(f"✅ Matched Student: {student}")
-    except Student.DoesNotExist:
-        return JsonResponse({"error": "Student not found"}, status=404)
-
-    # Fetch the clubs for the authenticated student
-    memberships = ClubMembers.objects.filter(student=student)
-    clubs_data = [{"club_name": m.club.club_name, "club_category": m.club.club_category} for m in memberships]
-
-    print(f"🎯 Clubs for {student}: {clubs_data}")  
-    return JsonResponse({"student_clubs": clubs_data}, safe=False)
-@login_required
-def get_events_by_student(request):
-    student = request.user
-    memberships = ClubMembers.objects.filter(student=student)
-
-    events = Event.objects.filter(club__in=[membership.club for membership in memberships])
-
-    events_data = [{'event_name': event.event_name, 'event_date': event.event_date, 'club_name': event.club.club_name} for event in events]
-
-    return JsonResponse({'student_events': events_data}, safe=False)
-
-def get_club_profile(request, club_id):
-    """Fetch club details, members, and events"""
-    club = get_object_or_404(Club, pk=club_id)
-
-    # Get members
-    members = ClubMembers.objects.filter(club=club)
-    members_data = [
-        {
-            "student_id": member.student.id,
-            "name": member.student.username,
-            "email": member.student.email,
-            "role_in_club": member.role_in_club,
-        }
-        for member in members
-    ]
-
-    # Get club events
-    events = Event.objects.filter(club=club)
-    events_data = [
-        {
-            "event_id": event.id,
-            "event_name": event.name,
-            "event_date": event.date,
-            "description": event.description,
-        }
-        for event in events
-    ]
-
-    club_data = {
-        "club_name": club.club_name,
-        "club_category": club.club_category,
-        "faculty_incharge": club.faculty_incharge.username,
-        "leader": club.leader.username,
-        "description": club.club_description,  # Make sure the model has a 'description' field
-        "members": members_data,
-        "events": events_data,
-    }
-
-    return JsonResponse({"club_profile": club_data}, safe=False)
- 
->>>>>>> anne

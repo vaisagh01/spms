@@ -1,71 +1,59 @@
+# Django & DRF Imports
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from . import views
-<<<<<<< HEAD
-from .views import (
-    StudentViewSet, ClubViewSet, EventViewSet,
-    get_student_details, 
-    get_topics_by_subject,
-    get_chapters_by_topic, 
-    get_subjects_by_student,
-    get_assignments_by_student,
-    get_assessments_and_marks_by_student,
-    post_assignment,
-)
-=======
-from .views import StudentViewSet, ClubViewSet, EventViewSet, ClubMembersViewSet, get_clubs_by_student, get_events_by_student
-from rest_framework_simplejwt.views import TokenRefreshView
-from .views import admin_dashboard, teacher_dashboard, student_dashboard, alumni_dashboard
-from api.views import api_login
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
->>>>>>> anne
 
+# Project-specific Views Imports
+from . import views
+from .views import (
+    StudentViewSet, ClubViewSet, EventViewSet, ClubMembersViewSet,
+    get_student_details, get_topics_by_subject, get_chapters_by_topic,
+    get_subjects_by_student, get_assignments_by_student, get_assessments_and_marks_by_student,
+    post_assignment, get_clubs_by_student, get_events_by_student,
+    admin_dashboard, teacher_dashboard, student_dashboard, alumni_dashboard,
+    api_login
+)
+
+# Setting up DRF Default Router
 router = DefaultRouter()
 router.register(r'clubs', ClubViewSet, basename='club')
 router.register(r'club-members', ClubMembersViewSet, basename='club-members')
 router.register(r'events', EventViewSet, basename='event')
 
-
+# URL Patterns
 urlpatterns = [
-<<<<<<< HEAD
+    # DRF Router URLs
     path('', include(router.urls)),
+
+    # Views for Clubs
     path('clubs/', views.get_clubs, name='get_clubs'),
-    
-    path('club/<int:club_id>/', views.get_club_by_id, name='get_club_by_id'),
-    
-    path('clubs/student/<int:student_id>/', views.get_clubs_by_student, name='get_clubs_by_student'),
-    
+    # path('club/<int:club_id>/', views.get_club_by_id, name='get_club_by_id'),
+    path('club/<int:club_id>/profile/', views.get_club_profile, name='get_club_profile'),
+    path('clubs/student/<int:student_id>/', get_clubs_by_student, name='get_clubs_by_student'),
+
+    # Views for Students
     path('student/<int:student_id>/', get_student_details, name='get_student_details'),
-    
     path('subjects/student/<int:student_id>/', get_subjects_by_student, name='get_subjects_by_student'),
-        
     path('assignments/student/<int:student_id>/', get_assignments_by_student, name='get_assignments_by_subject'),
-    
-    path('topics/subject/<int:subject_id>/', get_topics_by_subject, name='get_topics_by_subject'),
-    
-    path('chapters/topic/<int:topic_id>/', get_chapters_by_topic, name='get_chapters_by_topic'),
-    
     path('student/<int:student_id>/assignments-marks/', get_assessments_and_marks_by_student, name='student-assignments-marks'),
-    
+
+    # Views for Topics & Chapters
+    path('topics/subject/<int:subject_id>/', get_topics_by_subject, name='get_topics_by_subject'),
+    path('chapters/topic/<int:topic_id>/', get_chapters_by_topic, name='get_chapters_by_topic'),
+
+    # Post Assignment (Teacher)
     path("assignments/post/<int:teacher_id>/", post_assignment, name="post_assignment"),
-    
-]
-=======
-    path('api', include(router.urls)),
-    path("login/", api_login, name="api_login"),  # ✅ Login endpoint
-    path('clubs/', views.get_clubs, name='get_clubs'),
-    path('student/clubs/', get_clubs_by_student, name='get_clubs_by_student'),
-    path('student/events/', get_events_by_student, name='get_events_by_student'),
-    path("admin-dashboard/", admin_dashboard, name="admin_dashboard"),
-    path("teacher-dashboard/", teacher_dashboard, name="teacher_dashboard"),
-    path("alumni-dashboard/", alumni_dashboard, name="alumni_dashboard"),  
-    path('club/<int:club_id>/', views.get_club_profile, name='get_club_profile'),
+
+    # Authentication & Token Management
+    path("login/", api_login, name="api_login"),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-  
+
+    # Dashboards
+    path("admin-dashboard/", admin_dashboard, name="admin_dashboard"),
+    path("teacher-dashboard/", teacher_dashboard, name="teacher_dashboard"),
+    path("alumni-dashboard/", alumni_dashboard, name="alumni_dashboard"),
+
+    # Event-related Views
+    path('student/events/', get_events_by_student, name='get_events_by_student'),
 ]
-
-
-    
-    
->>>>>>> anne
