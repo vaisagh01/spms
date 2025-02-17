@@ -3,6 +3,7 @@ import { GraduationCap, Trophy, Code, Home } from "lucide-react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { useUser } from "@/app/context/UserContext";
+import { useParams } from "next/navigation";
 import Header from "@/components/Header";
 import "../../../globals.css";
 
@@ -32,45 +33,19 @@ export default function StudentLayout({ children }) {
     home: [
       {
         title: "Home",
-        url: `student/${student_id}`, // Dynamically update home URL
+        url: `teacher/${student_id}`, // Dynamically update home URL
         icon: Home,
         isActive: true,
-      },
+      }, 
+      {
+        title: "Manage Students",
+        url: `teacher/${student_id}`, // Dynamically update home URL
+        icon: Home,
+        isActive: true,
+      }
     ],
     navMain: updateUrls([
-      {
-        title: "Curriculur",
-        single: false,
-        isActive: true,
-        icon: GraduationCap,
-        items: [
-          { title: "Course Plan", url: "student/2/curricular/courses" },
-          { title: "Assignments", url: "student/2/curricular/assignments" },
-          { title: "Assessments", url: "student/2/curricular/assessments" },
-        ],
-      },
-      {
-        title: "Extra Curriculur",
-        single: false,
-        isActive: true,
-        icon: Trophy,
-        items: [
-          { title: "Clubs home", url: "student/2/extra-curricular" },
-          { title: "Clubs", url: "student/2/extra-curricular/clubs" },
-          { title: "Events", url: "student/2/extra-curricular/events" },
-          { title: "Achievements", url: "student/2/extra-curricular/achievements" },
-        ],
-      },
-      {
-        title: "Co-Curriculur",
-        single: false,
-        isActive: true,
-        icon: Code,
-        items: [
-          { title: "Internships", url: "student/2/co-curricular/internships" },
-          { title: "Projects", url: "student/2/co-curricular/projects" },
-        ],
-      },
+      
     ]),
   };
 

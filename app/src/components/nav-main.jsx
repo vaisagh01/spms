@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight, Home } from "lucide-react";
-
 import {
   Collapsible,
   CollapsibleContent,
@@ -26,14 +25,18 @@ export function NavMain({items}) {
     (<SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild isActive={items.home.url}>
-              <Link href={"/" + items.home.url}>
-                <Home />
-                <span>{items.home.title}</span>
-              </Link>
-              </SidebarMenuButton>
-        </SidebarMenuItem>
+        {
+          items.home.map((item,index) => (
+            <SidebarMenuItem key={index}>
+              <SidebarMenuButton asChild isActive={item.url}>
+                  <Link href={"/" + item.url}>
+                    <Home />
+                    <span>{item.title}</span>
+                  </Link>
+                  </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))
+        }
         {items.navMain.map((item) => (
           <Collapsible
             key={item.title}
