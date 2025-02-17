@@ -330,7 +330,6 @@ class EventViewSet(viewsets.ModelViewSet):
             date=request.data["date"],
             club=club,
         )
-
         return Response({"message": "Event created successfully"}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["POST"])
@@ -344,8 +343,6 @@ class EventViewSet(viewsets.ModelViewSet):
 
         event.attendees.add(student)
         return Response({"message": "Successfully joined the event"}, status=status.HTTP_200_OK)
-
-
     
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])  # <-- Restrict access to authenticated users
@@ -435,7 +432,6 @@ def get_club_profile(request, club_id):
 def post_assignment(request, teacher_id):
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request method"}, status=405)
-    
     try:
         data = json.loads(request.body)
         subject_id = data.get("subject_id")
@@ -452,7 +448,7 @@ def post_assignment(request, teacher_id):
         # Check if the selected subject is among the teacher's courses
         if not subjects.filter(subject_id=subject_id).exists():
             return JsonResponse({"error": "Unauthorized subject selection"}, status=403)
-        
+
         subject = Subject.objects.get(subject_id=subject_id)
         
         # Create assignment
@@ -465,7 +461,6 @@ def post_assignment(request, teacher_id):
             due_time=due_time,
             max_marks=max_marks,
         )
-        
         return JsonResponse({
             "message": "Assignment created successfully",
             "assignment_id": assignment.assignment_id,

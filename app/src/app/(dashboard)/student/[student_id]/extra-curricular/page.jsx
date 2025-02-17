@@ -6,6 +6,7 @@ import { useUser } from '@/app/context/UserContext'
 import axios from 'axios'
 import EventsPerMonth from '../components/EventsPerMonth'
 import EventDates from '../components/EventDates'
+import EventCalendar from '../components/EventCalender'
 
 const stats = [
   {
@@ -60,7 +61,7 @@ const page = () => {
           </div>
           <div className='col-span-4 md:col-span-3'>
             {/* sales arallel routes */}
-            {<EventDates />}
+            <EventCalendar />
           </div>
           
           <div className='col-span-4 md:col-span-3'>{<Notifications />}</div>

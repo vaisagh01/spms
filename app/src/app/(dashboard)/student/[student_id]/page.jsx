@@ -20,7 +20,7 @@ const Page = () => {
 
     const fetchStudentDetails = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/students/${id}/`);
+        const response = await axios.get(`${API_BASE_URL}/student/${id}/`);
         setStudentDetails(response.data);
       } catch (error) {
         console.error("Error fetching student details:", error);
@@ -29,6 +29,7 @@ const Page = () => {
 
     fetchStudentDetails();
   }, [params.student_id]);
+  console.log(studentDetails);
   
   return (
     <div className="p-4">
