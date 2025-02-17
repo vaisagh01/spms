@@ -3,6 +3,9 @@ from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from .models import Student, Club, Event, ClubMembers, Subject, Semester, Teacher, Assignment, Topic, Chapter, AssignmentSubmission, StudentMarks, Assessment
 from .serializers import StudentSerializer, ClubSerializer, EventSerializer, SubjectSerializer, AssignmentSerializer, TopicSerializer, ChapterSerializer
+from django.views.decorators.csrf import csrf_exempt
+import json
+
 
 def get_student_details(request, student_id):
     student = get_object_or_404(Student, pk=student_id)
@@ -16,17 +19,6 @@ def get_student_details(request, student_id):
         "course": student.course.course_name,
     }
     return JsonResponse({"student": student_data})
-
-def get_subject_by_semester(request, semester_no):
-    subjects = Subject.objects.filter(semester=semester_no).select_related("teacher")
-    subjects_data = [{
-        "subject_name": subject.subject_name,
-        "subject_code": subject.subject_code,
-        "teacher_name":  f"{subject.teacher.first_name} {subject.teacher.last_name}",
-        "course": subject.course.course_name if subject.course else "No course assigned"
-
-    } for subject in subjects]
-    return JsonResponse({"subjects": subjects_data})
 
 def get_subjects_by_student(request, student_id):
     try:
@@ -54,17 +46,6 @@ def get_subjects_by_student(request, student_id):
     except Student.DoesNotExist:
         return JsonResponse({"error": "Student not found"}, status=404)
     
-def get_assignments_by_subject(request, subject_id):
-    assignments = Assignment.objects.filter(subject_id=subject_id)
-    assignments_data = [{
-        "assignment_id": assignment.assignment_id,
-        "title": assignment.title,
-        "description": assignment.description,
-        "due_date": assignment.due_date,
-        "max_marks": assignment.max_marks
-    } for assignment in assignments]
-    return JsonResponse({"assignments": assignments_data})
-
 def get_assignments_by_student(request, student_id):
     try:
         # Fetch student details
@@ -119,7 +100,6 @@ def get_topics_by_subject(request, subject_id):
         "is_completed": topic.is_completed
     } for topic in topics]
     return JsonResponse({"topics": topics_data})
-
 def get_chapters_by_topic(request, topic_id):
     chapters = Chapter.objects.filter(topic_id=topic_id)
     chapters_data = [{
@@ -205,3 +185,52 @@ def get_clubs_by_student(request, student_id):
         "club_id", "club_name", "club_category", "faculty_incharge", "created_date"
     )
     return JsonResponse({"clubs": list(clubs)}, safe=False)
+
+@csrf_exempt
+def post_assignment(request, teacher_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request method"}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        subject_id = data.get("subject_id")
+        title = data.get("title")
+        description = data.get("description")
+        due_date = data.get("due_date")
+        due_time = data.get("due_time")
+        max_marks = data.get("max_marks")
+        
+        # Fetch teacher and their related courses
+        teacher = Teacher.objects.get(teacher_id=teacher_id)
+        subjects = Subject.objects.filter(course__in=teacher.courses.all())
+        
+        # Check if the selected subject is among the teacher's courses
+        if not subjects.filter(subject_id=subject_id).exists():
+            return JsonResponse({"error": "Unauthorized subject selection"}, status=403)
+        
+        subject = Subject.objects.get(subject_id=subject_id)
+        
+        # Create assignment
+        assignment = Assignment.objects.create(
+            subject=subject,
+            semester=subject.semester,
+            title=title,
+            description=description,
+            due_date=due_date,
+            due_time=due_time,
+            max_marks=max_marks,
+        )
+        
+        return JsonResponse({
+            "message": "Assignment created successfully",
+            "assignment_id": assignment.assignment_id,
+        }, status=201)
+    
+    except Teacher.DoesNotExist:
+        return JsonResponse({"error": "Teacher not found"}, status=404)
+    
+    except Subject.DoesNotExist:
+        return JsonResponse({"error": "Subject not found"}, status=404)
+    
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

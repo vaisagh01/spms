@@ -16,6 +16,7 @@ class Course(models.Model):
 
     def __str__(self):
         return self.course_name
+    
 class Student(models.Model):
     student_id = models.AutoField(primary_key=True)  # Primary Key
     first_name = models.CharField(max_length=100)
@@ -63,6 +64,8 @@ class Event(models.Model):
     def __str__(self):
         return self.name
 
+from django.db import models
+
 class Teacher(models.Model):
     teacher_id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=100)
@@ -71,14 +74,13 @@ class Teacher(models.Model):
     department = models.CharField(max_length=255)
     designation = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
-    subject = models.ForeignKey(
-        'Subject', on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_teachers"
-    )  # Changed related_name
-
     hire_date = models.DateField()
 
+    # Temporarily allow null values
+    course = models.ForeignKey('Course', on_delete=models.CASCADE, related_name="teachers", null=True, blank=True)
+
     def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.designation}"
+        return f"{self.first_name} {self.last_name} - {self.designation} ({self.course.course_name if self.course else 'No Course'})"
 
 class Subject(models.Model):
     subject_id = models.AutoField(primary_key=True)
@@ -169,3 +171,4 @@ class Semester(models.Model):
 
     def __str__(self):
         return f"Semester {self.semester_no}"
+

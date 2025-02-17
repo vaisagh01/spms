@@ -4,13 +4,12 @@ from . import views
 from .views import (
     StudentViewSet, ClubViewSet, EventViewSet,
     get_student_details, 
-    get_subject_by_semester,
-    get_assignments_by_subject, 
     get_topics_by_subject,
     get_chapters_by_topic, 
     get_subjects_by_student,
     get_assignments_by_student,
-    get_assessments_and_marks_by_student
+    get_assessments_and_marks_by_student,
+    post_assignment,
 )
 
 router = DefaultRouter()
@@ -29,11 +28,7 @@ urlpatterns = [
     path('student/<int:student_id>/', get_student_details, name='get_student_details'),
     
     path('subjects/student/<int:student_id>/', get_subjects_by_student, name='get_subjects_by_student'),
-    
-    path('subjects/semester/<int:semester_no>/', get_subject_by_semester, name='get_subject_by_semester'),
-    
-    path('assignments/subject/<int:subject_id>/', get_assignments_by_subject, name='get_assignments_by_subject'),
-    
+        
     path('assignments/student/<int:student_id>/', get_assignments_by_student, name='get_assignments_by_subject'),
     
     path('topics/subject/<int:subject_id>/', get_topics_by_subject, name='get_topics_by_subject'),
@@ -41,5 +36,7 @@ urlpatterns = [
     path('chapters/topic/<int:topic_id>/', get_chapters_by_topic, name='get_chapters_by_topic'),
     
     path('student/<int:student_id>/assignments-marks/', get_assessments_and_marks_by_student, name='student-assignments-marks'),
+    
+    path("assignments/post/<int:teacher_id>/", post_assignment, name="post_assignment"),
     
 ]
