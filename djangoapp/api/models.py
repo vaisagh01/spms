@@ -77,10 +77,10 @@ class Teacher(models.Model):
     hire_date = models.DateField()
 
     # Temporarily allow null values
-    course = models.ForeignKey('Course', on_delete=models.CASCADE, related_name="teachers", null=True, blank=True)
+    # course = models.ForeignKey('Course', on_delete=models.CASCADE, related_name="teachers", null=True, blank=True)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.designation} ({self.course.course_name if self.course else 'No Course'})"
+        return f"{self.first_name} {self.last_name} - {self.designation})"
 
 class Subject(models.Model):
     subject_id = models.AutoField(primary_key=True)
@@ -172,3 +172,6 @@ class Semester(models.Model):
     def __str__(self):
         return f"Semester {self.semester_no}"
 
+# def_topic_is_completed
+# def_ get_students_by_course
+# 

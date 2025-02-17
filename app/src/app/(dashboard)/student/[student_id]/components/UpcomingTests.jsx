@@ -20,8 +20,17 @@ function UpcomingTests() {
         // Extract assessment IDs that have marks
         const completedAssessmentIds = new Set(marks.map(mark => mark.assessment_id));
 
-        // Filter out assessments that exist in the completedAssessmentIds set
-        const filteredAssessments = assessments.filter(assessment => !completedAssessmentIds.has(assessment.assessment_id));
+        // Get the current date
+        const currentDate = new Date();
+
+        // Filter the assessments by those that haven't been completed yet and are in the future
+        const filteredAssessments = assessments.filter(assessment => {
+          const assessmentDate = new Date(assessment.date_conducted);
+          return (
+            !completedAssessmentIds.has(assessment.assessment_id) &&
+            assessmentDate > currentDate // Only show tests that are in the future
+          );
+        });
 
         setUpcomingAssessments(filteredAssessments);
       })
@@ -29,7 +38,7 @@ function UpcomingTests() {
         console.error("Error fetching upcoming assessments:", error);
       });
   }, [params.student_id]);
-  
+
   return (
     <Card>
       <CardHeader>
@@ -51,7 +60,7 @@ function UpcomingTests() {
                   <p className="text-sm text-muted-foreground">{item.subject_name} ({item.subject_code})</p>
                 </div>
                 <div className="ml-auto font-medium text-blue-500">
-                  {format(new Date(item.date_conducted), "yyyy-MM-dd")}
+                  {format(new Date(item.date_conducted), "dd/MM/yy")}
                 </div>
               </div>
             ))
