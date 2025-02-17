@@ -14,9 +14,9 @@ function AssessmentMarks() {
   const [sortByMarks, setSortByMarks] = useState("none");
 
   const params = useParams();
-  
+
   useEffect(() => {
-    const id = params.student_id // Default for testing
+    const id = params.student_id; // Default for testing
     axios.get(`http://127.0.0.1:8000/api/student/${id}/assignments-marks/`)
       .then(response => {
         setAssessments(response.data.assessments);
@@ -24,7 +24,6 @@ function AssessmentMarks() {
       })
       .catch(error => console.error("Error fetching assessment marks:", error));
   }, []);
-  console.log(assessments, marks);
   
   // Get unique semesters and subjects for filters
   const semesters = [...new Set(assessments.map(item => item.semester))];
@@ -109,22 +108,22 @@ function AssessmentMarks() {
 
         {/* Display Assessment Marks */}
         <div className="space-y-6 mt-4">
-          {filteredMarks.length === 0 ? (
+          {assessments.length === 0 ? (
             <p className="text-sm text-muted-foreground">No assessments found.</p>
           ) : (
-            filteredMarks.map((mark, index) => {
-              let assessment = assessments.find(a => a.assessment_id === mark.assessment_id);
+            assessments.map((assessment, index) => {
+              const mark = marks.find(m => m.assessment_id === assessment.assessment_id);
               return (
                 <div key={index} className="flex items-center border-b-[1px] py-2 border-slate-200">
                   <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">{mark.assessment_type}</p>
+                    <p className="text-sm font-medium leading-none">{assessment.assessment_type}</p>
                     <p className="text-sm text-muted-foreground">{assessment.subject_name} ({assessment.subject_code})</p>
                   </div>
                   <div className="ml-auto font-medium text-blue-500">
-                    {format(new Date(assessment.date_conducted), "yyyy-MM-dd")}
+                    {format(new Date(assessment.date_conducted), "dd/MM/yyyy")}
                   </div>
-                  <div className="ml-4 font-medium">
-                    {mark.marks_obtained}/{mark.total_marks}
+                  <div className="ml-4 font-xs">
+                    {mark ? `${mark.marks_obtained}/${mark.total_marks}` : <p className="text-xs text-slate-400">-/-</p>}
                   </div>
                 </div>
               );

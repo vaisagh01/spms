@@ -186,6 +186,7 @@ def get_clubs_by_student(request, student_id):
     )
     return JsonResponse({"clubs": list(clubs)}, safe=False)
 
+# now for teachers to add assignment
 @csrf_exempt
 def post_assignment(request, teacher_id):
     if request.method != "POST":

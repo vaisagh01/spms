@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Home } from "lucide-react";
 
 import {
   Collapsible,
@@ -26,7 +26,15 @@ export function NavMain({items}) {
     (<SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild isActive={items.home.url}>
+              <Link href={"/" + items.home.url}>
+                <Home />
+                <span>{items.home.title}</span>
+              </Link>
+              </SidebarMenuButton>
+        </SidebarMenuItem>
+        {items.navMain.map((item) => (
           <Collapsible
             key={item.title}
             asChild

@@ -46,10 +46,8 @@ class ClubMembers(models.Model):
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="club_members", default=1)  # Set a default club
     role_in_club = models.CharField(max_length=255)
     date_joined = models.DateField(auto_now_add=True)
-    
     class Meta:
         unique_together = ('student', 'club')  # Ensure a student cannot join the same club twice
-
     def __str__(self):
         return f"{self.student.first_name} {self.student.last_name} - {self.club.club_name}"
 
@@ -78,8 +76,16 @@ class Teacher(models.Model):
 
     hire_date = models.DateField()
 
+<<<<<<< HEAD
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.designation}"
+=======
+    # Temporarily allow null values
+    # course = models.ForeignKey('Course', on_delete=models.CASCADE, related_name="teachers")
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.designation})"
+>>>>>>> refs/remotes/origin/main
 
 class Subject(models.Model):
     subject_id = models.AutoField(primary_key=True)
@@ -170,3 +176,10 @@ class Semester(models.Model):
 
     def __str__(self):
         return f"Semester {self.semester_no}"
+<<<<<<< HEAD
+=======
+
+# def_topic_is_completed
+# def_ get_students_by_course
+# 
+>>>>>>> refs/remotes/origin/main
