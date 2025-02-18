@@ -6,7 +6,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 # Project-specific Views Imports
 from . import views
 from .views import (
-    StudentViewSet, ClubViewSet, EventViewSet, ClubMembersViewSet, api_login, get_club_profile,
+    StudentViewSet, ClubViewSet, EventViewSet, ClubMembersViewSet, api_login, delete_event_view, delete_member_view, get_club_profile,
     get_student_details, get_topics_by_subject, get_chapters_by_topic,
     get_subjects_by_student, get_assignments_by_student, get_assessments_and_marks_by_student,
     post_assignment, get_student_clubs, get_events_by_student,
@@ -59,4 +59,13 @@ urlpatterns = [
     path('student/events/', get_events_by_student, name='get_events_by_student'),
     path('get_student_marks_by_assessment_id/<int:assessment_id>/', get_student_marks_by_assessment_id, name='get_student_marks'),
     path('student/<int:student_id>/events/', views.get_student_event_participations, name='student_events'),
+    
+    path('add_member/<int:club_id>/', views.add_member_view, name='add_member'),
+    
+    # URL to add an event to a club
+    path('add_event/<int:club_id>/', views.add_event_view, name='add_event'),
+    
+    path('clubs/<int:club_id>/delete_event/', delete_event_view, name='delete_event'),
+    path('clubs/<int:club_id>/delete_member/', delete_member_view, name='delete_member'),
 ]
+

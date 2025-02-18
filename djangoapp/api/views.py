@@ -1,4 +1,5 @@
 # Django Core Imports
+import datetime
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
@@ -393,37 +394,42 @@ def get_events_by_student(request):
 def get_club_profile(request, club_id):
     """Fetch club details, members, and events"""
     club = get_object_or_404(Club, pk=club_id)
+
     # Get members
     members = ClubMembers.objects.filter(club=club)
     members_data = [
         {
-            "student_id": member.student.id,
+            "student_id": member.student.student_id,
             "name": member.student.username,
             "email": member.student.email,
             "role_in_club": member.role_in_club,
         }
         for member in members
     ]
+
     # Get club events
     events = Event.objects.filter(club=club)
     events_data = [
         {
-            "event_id": event.id,
-            "event_name": event.name,
-            "event_date": event.date,
+            "event_id": event.event_id,
+            "event_name": event.event_name,
+            "event_date": event.event_date,
             "description": event.description,
         }
         for event in events
     ]
+
     club_data = {
         "club_name": club.club_name,
         "club_category": club.club_category,
         "faculty_incharge": club.faculty_incharge.username,
         "leader": club.leader.username,
-        "description": club.club_description,  # Make sure the model has a 'description' field
+        "leader_id": club.leader.student_id,  # Include leader_id
+        "description": club.club_description,  # Ensure this field exists in the model
         "members": members_data,
         "events": events_data,
     }
+
     return JsonResponse({"club_profile": club_data}, safe=False)
 
 # now for teachers to add assignment
@@ -545,8 +551,6 @@ def get_student_event_participations(request, student_id):
     # Return the event details as JSON response
     return JsonResponse({'events': event_details})
 
-from django.http import JsonResponse
-from .models import ClubMembers, EventParticipation
 from django.core.exceptions import ObjectDoesNotExist
 
 def get_student_clubs(request, student_id):
@@ -559,7 +563,6 @@ def get_student_clubs(request, student_id):
         for club_member in club_memberships:
             club = club_member.club
             events_participated = []
-
             # Fetch events that the student is participating in for this club
             event_participations = EventParticipation.objects.filter(
                 club_member=club_member
@@ -590,3 +593,146 @@ def get_student_clubs(request, student_id):
 
     except ObjectDoesNotExist:
         return JsonResponse({"error": "Student not found"}, status=404)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def add_member_view(request, club_id):
+    try:
+        # Parse the JSON body
+        data = json.loads(request.body)
+        
+        # Extract username and role from the body
+        username = data.get("username")
+        role = data.get("role", "Member")  # Default role is "Member"
+
+        # Check if username is provided
+        if not username:
+            return JsonResponse({"status": "error", "message": "Username is required."}, status=400)
+        
+        # Get the club instance by club_id
+        try:
+            club = Club.objects.get(club_id=club_id)
+        except Club.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Club not found."}, status=404)
+        
+        # Get the student instance by username
+        try:
+            student = Student.objects.get(username=username)
+        except Student.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Student not found."}, status=404)
+        
+        # Check if the student is already a member of the club
+        if ClubMembers.objects.filter(student=student, club=club).exists():
+            return JsonResponse({"status": "error", "message": "Student is already a member of the club."}, status=400)
+
+        # Add the student as a club member
+        member = ClubMembers.objects.create(
+            student=student,
+            club=club,
+            role_in_club=role
+        )
+
+        return JsonResponse({
+            "status": "success",
+            "message": f"Member {student.username} added to club {club.club_name} as {role}"
+        }, status=200)
+
+    except json.JSONDecodeError:
+        return JsonResponse({"status": "error", "message": "Invalid JSON format."}, status=400)
+
+from datetime import datetime  # Correct import of datetime class
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def add_event_view(request, club_id):
+    try:
+        # Parse the JSON body
+        data = json.loads(request.body)
+        
+        # Extract event details from the body
+        event_name = data.get("event_name")
+        description = data.get("description", "")
+        event_date_str = data.get("event_date")
+
+        # Check if event_date is provided
+        if not event_date_str:
+            return JsonResponse({"status": "error", "message": "Event date is required."}, status=400)
+        
+        # Convert the event date from string to date (without time)
+        try:
+            event_date = datetime.strptime(event_date_str, "%Y-%m-%d").date()  # Using the datetime class here
+        except ValueError:
+            return JsonResponse({"status": "error", "message": "Invalid date format. Please use 'YYYY-MM-DD'."}, status=400)
+        
+        # Get the club instance by club_id (using club_id, not id)
+        try:
+            club = Club.objects.get(club_id=club_id)  # Using club_id instead of id
+        except Club.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Club not found."}, status=404)
+
+        # Create the new event
+        event = Event.objects.create(
+            club=club,
+            event_name=event_name,
+            description=description,
+            event_date=event_date
+        )
+
+        return JsonResponse({
+            "status": "success",
+            "message": f"Event {event.event_name} added to club {club.club_name}",
+            "event_id": event.event_id,
+            "event_name": event.event_name,
+            "event_date": event.event_date
+        }, status=200)
+
+    except json.JSONDecodeError:
+        return JsonResponse({"status": "error", "message": "Invalid JSON format."}, status=400)
+
+@csrf_exempt
+def delete_event_view(request, club_id):
+    if request.method == "DELETE":
+        try:
+            data = json.loads(request.body)
+            event_id = data.get("event_id")
+
+            if not event_id:
+                return JsonResponse({"error": "Event ID is required"}, status=400)
+
+            event = Event.objects.filter(club_id=club_id, event_id=event_id).first()
+
+            if not event:
+                return JsonResponse({"error": "Event not found"}, status=404)
+
+            event.delete()
+            return JsonResponse({"message": "Event deleted successfully"}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+    
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
+@csrf_exempt
+def delete_member_view(request, club_id):
+    if request.method == "DELETE":
+        try:
+            data = json.loads(request.body)
+            member_id = data.get("member_id")
+
+            if not member_id:
+                return JsonResponse({"error": "Member ID is required"}, status=400)
+
+            membership = ClubMembers.objects.filter(club_id=club_id, student_id=member_id).first()
+
+            if not membership:
+                return JsonResponse({"error": "Member not found in this club"}, status=404)
+
+            membership.delete()
+            return JsonResponse({"message": "Member removed successfully"}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+    
+    return JsonResponse({"error": "Invalid request method"}, status=405)
