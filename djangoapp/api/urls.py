@@ -11,7 +11,7 @@ from .views import (
     get_subjects_by_student, get_assignments_by_student, get_assessments_and_marks_by_student,
     post_assignment, get_student_clubs, get_events_by_student,
     admin_dashboard, teacher_dashboard, student_dashboard, alumni_dashboard,
-    api_login, get_student_marks_by_assessment_id, get_student_event_participations, get_club_profile
+    api_login, get_student_marks_by_assessment_id, get_student_event_participations, get_club_profile,create_student_marks, update_student_marks
 )
 
 # Setting up DRF Default Router
@@ -59,6 +59,7 @@ urlpatterns = [
     path('student/events/', get_events_by_student, name='get_events_by_student'),
     path('get_student_marks_by_assessment_id/<int:assessment_id>/', get_student_marks_by_assessment_id, name='get_student_marks'),
     path('student/<int:student_id>/events/', views.get_student_event_participations, name='student_events'),
+<<<<<<< HEAD
     
     path('add_member/<int:club_id>/', views.add_member_view, name='add_member'),
     
@@ -67,5 +68,9 @@ urlpatterns = [
     
     path('clubs/<int:club_id>/delete_event/', delete_event_view, name='delete_event'),
     path('clubs/<int:club_id>/delete_member/', delete_member_view, name='delete_member'),
+=======
+    path('create_student_marks/', create_student_marks, name='create_student_marks'),
+    path('update_student_marks/<int:student_marks_id>/', update_student_marks, name='update_student_marks'),
+>>>>>>> 2bb13b174b609851917991fc9d7c7b5db94ff4ef
 ]
 

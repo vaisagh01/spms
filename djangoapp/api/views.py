@@ -27,6 +27,11 @@ from .serializers import (
     AttendanceSerializer, StudentMarksSerializer
 )
 import json
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from rest_framework.parsers import JSONParser
+from .models import StudentMarks
+from .serializers import StudentMarksSerializer
 User = get_user_model()
 # @staff_member_required
 # def admin_dashboard(request):
@@ -593,6 +598,7 @@ def get_student_clubs(request, student_id):
 
     except ObjectDoesNotExist:
         return JsonResponse({"error": "Student not found"}, status=404)
+<<<<<<< HEAD
 
 
 @csrf_exempt
@@ -736,3 +742,35 @@ def delete_member_view(request, club_id):
             return JsonResponse({"error": "Invalid JSON"}, status=400)
     
     return JsonResponse({"error": "Invalid request method"}, status=405)
+=======
+@csrf_exempt
+def create_student_marks(request):
+    if request.method == 'POST':
+        try:
+            data = JSONParser().parse(request)
+            serializer = StudentMarksSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse({'message': 'Student marks created successfully', 'data': serializer.data}, status=201)
+            return JsonResponse({'error': serializer.errors}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+@csrf_exempt
+def update_student_marks(request, student_marks_id):
+    if request.method == 'PUT':
+        try:
+            student_marks = StudentMarks.objects.get(pk=student_marks_id)
+            data = JSONParser().parse(request)
+            serializer = StudentMarksSerializer(student_marks, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse({'message': 'Student marks updated successfully', 'data': serializer.data}, status=200)
+            return JsonResponse({'error': serializer.errors}, status=400)
+        except StudentMarks.DoesNotExist:
+            return JsonResponse({'error': 'StudentMarks not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+>>>>>>> 2bb13b174b609851917991fc9d7c7b5db94ff4ef
