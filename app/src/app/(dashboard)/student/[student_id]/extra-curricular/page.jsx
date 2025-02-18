@@ -32,23 +32,22 @@ const Page = () => {
       .catch(error => console.error("Error fetching clubs data:", error));
   }, [params.student_id]);
 
-  const stats = [
-    {
-      title: "Number of Events",
-      desc: clubData ? clubData.events.length : "Loading...",
-    },
-    {
-      title: "Number of Clubs",
-      desc: "42", // Assuming this is a static value
-    },
-    {
-      title: "Number of Achievements",
-      desc: clubData ? clubData.events.reduce((acc, event) => acc + event.participants.length, 0) : "Loading...",
-    },
-  ];
+  // const stats = [
+  //   {
+  //     title: "Number of Events",
+  //     desc: clubData ? clubData.events?.length : "Loading...",
+  //   },
+  //   {
+  //     title: "Number of Clubs",
+  //     desc: "42", // Assuming this is a static value
+  //   },
+  //   {
+  //     title: "Number of Achievements",
+  //     desc: clubData ? clubData.events?.reduce((acc, event) => acc + event.participants.length, 0) : "Loading...",
+  //   },
+  // ];
   console.log(clubData);
   
-
   return (
     <div className='p-4'>
       <div className='flex flex-1 flex-col space-y-2 gap-1'>

@@ -18,8 +18,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import (
     Student, Club, Event, ClubMembers, Subject, Semester, Teacher, 
-    Assignment, Topic, Chapter, AssignmentSubmission, StudentMarks, Assessment, Attendance
-)
+    Assignment, Topic, Chapter, AssignmentSubmission, StudentMarks, Assessment, Attendance,
+    EventParticipation)
 from .serializers import (
     StudentSerializer, ClubSerializer, EventSerializer, SubjectSerializer, 
     AssignmentSerializer, TopicSerializer, ChapterSerializer, ClubMemberSerializer, 
@@ -222,7 +222,6 @@ def get_assessments_and_marks_by_student(request, student_id):
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
-
 
 # === EVENT VIEWSET ===
 class ClubViewSet(viewsets.ModelViewSet):
@@ -519,3 +518,75 @@ def get_student_marks_by_assessment_id(request, assessment_id):
         return JsonResponse({"error": "Assessment not found"}, status=404)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+def get_student_event_participations(request, student_id):
+    # Fetch the student object, raising 404 error if not found
+    student = get_object_or_404(Student, pk=student_id)
+
+    # Get all the club memberships of the student
+    club_memberships = student.club_memberships.all()
+
+    # Collect all the events the student has participated in
+    participations = EventParticipation.objects.filter(
+        club_member__in=club_memberships
+    ).select_related('event', 'club_member')
+
+    # Prepare a list of event details
+    event_details = []
+    for participation in participations:
+        event_details.append({
+            'event_name': participation.event.event_name,
+            'event_date': participation.event.event_date,
+            'role_in_event': participation.role_in_event,
+            'achievement': participation.achievement,
+            'club_name': participation.club_member.club.club_name
+        })
+
+    # Return the event details as JSON response
+    return JsonResponse({'events': event_details})
+
+from django.http import JsonResponse
+from .models import ClubMembers, EventParticipation
+from django.core.exceptions import ObjectDoesNotExist
+
+def get_student_clubs(request, student_id):
+    try:
+        # Fetch all ClubMembers for the given student_id
+        club_memberships = ClubMembers.objects.filter(student_id=student_id)
+        
+        # Create a list of club details
+        clubs = []
+        for club_member in club_memberships:
+            club = club_member.club
+            events_participated = []
+
+            # Fetch events that the student is participating in for this club
+            event_participations = EventParticipation.objects.filter(
+                club_member=club_member
+            )
+            
+            for participation in event_participations:
+                event = participation.event
+                events_participated.append({
+                    "event_id": event.event_id,
+                    "event_name": event.event_name,
+                    "event_date": event.event_date,
+                    "role_in_event": participation.role_in_event,
+                    "achievement": participation.achievement,
+                })
+            
+            clubs.append({
+                "club_id": club.club_id,
+                "club_name": club.club_name,
+                "club_category": club.club_category,
+                "club_description": club.club_description,
+                "faculty_incharge": club.faculty_incharge.username if club.faculty_incharge else None,
+                "created_date": club.created_date,
+                "events_participated": events_participated,  # Include the events the student is part of
+            })
+        
+        # Return the clubs and events data as JSON
+        return JsonResponse({"clubs": clubs}, safe=False)
+
+    except ObjectDoesNotExist:
+        return JsonResponse({"error": "Student not found"}, status=404)

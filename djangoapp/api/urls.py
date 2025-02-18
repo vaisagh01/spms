@@ -1,7 +1,7 @@
 # Django & DRF Imports
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-# from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # Project-specific Views Imports
 from . import views
