@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import UpcomingTests from "../../components/UpcomingTests";
 import AssessmentMarks from "../../components/AssessmentMarks";
 
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = "http://127.0.0.1:8000/curricular";
 
 const Page = () => {
   const [studentDetails, setStudentDetails] = useState(null);

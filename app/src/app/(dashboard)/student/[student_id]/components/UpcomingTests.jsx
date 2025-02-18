@@ -13,7 +13,7 @@ function UpcomingTests() {
     const id = params.student_id;
     if (!id) return;
 
-    axios.get(`http://127.0.0.1:8000/api/student/${id}/assignments-marks/`)
+    axios.get(`http://127.0.0.1:8000/curricular/student/${id}/assignments-marks/`)
       .then(response => {
         const { assessments, marks } = response.data;
 

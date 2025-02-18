@@ -17,7 +17,7 @@ const Calendar = () => {
   const [selectedEvents, setSelectedEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const params = useParams();
-  const API_BASE_URL = "http://localhost:8000/api";
+  const API_BASE_URL = "http://localhost:8000/curricular";
 
   useEffect(() => {
     const id = params.student_id;

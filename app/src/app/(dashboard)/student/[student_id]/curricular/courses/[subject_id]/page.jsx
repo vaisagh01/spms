@@ -95,7 +95,7 @@ const page = () => {
   
       const fetchData = async () => {
         try {
-          const response = await axios.get(`http://127.0.0.1:8000/api/topics/subject/${id}/`);
+          const response = await axios.get(`http://127.0.0.1:8000/extracurricular/topics/subject/${id}/`);
           setData(response.data.topics);
         } catch (error) {
           console.error("Error fetching data:", error);

@@ -22,7 +22,7 @@ import { useParams } from "next/navigation";
 export default function EventsPerMonth() {
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const API_BASE_URL = "http://localhost:8000/api";  // Adjust to your actual API URL
+  const API_BASE_URL = "http://localhost:8000/extracurricular";  // Adjust to your actual API URL
   const params = useParams();
   useEffect(() => {
     const id = params.student_id;  // Replace with dynamic student ID if needed

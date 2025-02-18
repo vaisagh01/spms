@@ -56,7 +56,6 @@ class Course(models.Model):
     course_name = models.CharField(max_length=255)
     department = models.CharField(max_length=255)
     credits = models.IntegerField()
-
     def __str__(self):
         return self.course_name
     

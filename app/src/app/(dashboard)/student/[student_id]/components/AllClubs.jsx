@@ -18,7 +18,7 @@ function StudentClubs() {
   useEffect(() => {
     const studentId = params.student_id; // Get student_id from URL params
     // Fetch clubs and events the student is part of
-    axios.get(`http://127.0.0.1:8000/api/student/${studentId}/clubs/`)
+    axios.get(`http://127.0.0.1:8000/extracurricular/student/${studentId}/clubs/`)
       .then(response => {
         setClubs(response.data.clubs);
       })
