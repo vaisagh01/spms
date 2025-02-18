@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import EventsPerMonth from "./components/EventsPerMonth";
 import EventDates from "./components/EventDates";
 import AllAssignments from "./components/AllAssignments";
+
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 const Page = () => {
@@ -20,8 +21,8 @@ const Page = () => {
 
     const fetchStudentDetails = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/student/${id}/`);
-        setStudentDetails(response.data);
+        const response = await axios.get(`http://localhost:8000/api/student/${id}/`);
+        setStudentDetails(response.data.student);
       } catch (error) {
         console.error("Error fetching student details:", error);
       }

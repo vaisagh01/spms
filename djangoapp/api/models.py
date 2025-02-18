@@ -227,7 +227,6 @@ class StudentMarks(models.Model):
     assessment = models.ForeignKey(Assessment, on_delete=models.CASCADE, related_name="student_marks")
     student = models.ForeignKey("Student", on_delete=models.CASCADE, related_name="marks")
     marks_obtained = models.IntegerField()
-
     class Meta:
         unique_together = ("assessment", "student")  # Ensures one student has only one mark per assessment
 
@@ -243,10 +242,9 @@ class Assignment(models.Model):
     due_date = models.DateField()
     due_time = models.TimeField(null=True, blank=True)  # ⏰ Added due_time field
     max_marks = models.IntegerField()
-
     def __str__(self):
         return self.title
-    
+
 class AssignmentSubmission(models.Model):
     submission_id = models.AutoField(primary_key=True)
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name="submissions")

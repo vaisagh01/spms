@@ -1,89 +1,83 @@
-import MyCard from "@/components/MyCard"
-import { DataTable } from "./data-table"
-import { columns } from "./columns"
-const data = [
-  {
-    name: "blossoms",
-    club : "Student Welfare Office",
-    role: "hospitality",
-    date: "12/12/2021"
-  },
-  {
-    name: "inblooms",
-    club : "Student Welfare Office",
-    role: "hospitality",
-    date: "12/12/2021"
-  },
-  {
-    name: "art",
-    club : "Student Welfare Office",
-    role: "hospitality",
-    date: "12/12/2021"
-  },
-  {
-    name: "art",
-    club : "Student Welfare Office",
-    role: "hospitality",
-    date: "12/12/2021"
-  },
-  {
-    name: "art",
-    club : "Student Welfare Office",
-    role: "hospitality",
-    date: "12/12/2021"
-  },
-  {
-    name: "art",
-    club : "Student Welfare Office",
-    role: "hospitality",
-    date: "12/12/2021"
-  },
-  {
-    name: "art",
-    club : "Student Welfare Office",
-    role: "hospitality",
-    date: "12/12/2021"
-  },
-  {
-    name: "art",
-    club : "Student Welfare Office",
-    role: "hospitality",
-    date: "12/12/2021"
-  },
-  {
-    name: "art",
-    club : "Student Welfare Office",
-    role: "hospitality",
-    date: "12/12/2021"
-  },
-]
-const page = () => {
+"use client";
+
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { DataTable } from "./data-table";
+import { columns } from "./columns";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useParams } from "next/navigation";
+
+const Page = () => {
+  const [data, setData] = useState([]);
+  const [clubs, setClubs] = useState([]); // For the select dropdown
+  const [selectedClub, setSelectedClub] = useState(""); // Selected club filter
+  const params = useParams();
+
+  useEffect(() => {
+    const id = params.student_id; // Assuming the student ID is passed as a URL param
+    // Fetch events data for the specific student
+    axios
+      .get(`http://localhost:8000/api/student/${id}/events/`)
+      .then((response) => {
+        setData(response.data.events);
+      })
+      .catch((error) => {
+        console.error("Error fetching events data:", error);
+      });
+
+    // Fetch clubs for the Select dropdown
+    axios
+      .get(`http://localhost:8000/api/student/${id}/clubs/`)
+      .then((response) => {
+        setClubs(response.data.clubs);
+      })
+      .catch((error) => {
+        console.error("Error fetching clubs:", error);
+      });
+  }, [params.student_id]);
+
+  const handleClubChange = (value) => {
+    setSelectedClub(value);
+  };
+
+  const filteredData = selectedClub
+    ? data.filter((event) => event.club_name === selectedClub)
+    : data;
+
   return (
     <div className="p-4">
-      <div className='flex items-center justify-between space-y-2'>
-          <h2 className='text-4xl font-bold tracking-tight'>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-4xl font-bold tracking-tight">
             Manage your events here
-          </h2>
-      </div>
+          </CardTitle>
+          <CardDescription>
+            Filter and manage events based on clubs
+          </CardDescription>
+        </CardHeader>
 
-      <div className="flex gap-3">
-        <div className="w-3/4">
-        <div className="container mx-auto py-10">
-          <DataTable columns={columns} data={data} />
-        </div>
-        </div>
-
-        <div className="w-1/4">
-          {/* <div className="grid gap-2 md:grid-cols-1 lg:grid-cols-1">
-            <MyCard desc={"number of events"} num={234}/>
-            <MyCard desc={"number of events"} num={234}/>
-            <MyCard desc={"number of events"} num={234}/>
-            <MyCard desc={"number of events"} num={234}/>
-          </div> */}
-        </div>
-      </div>
+        {/* Select Dropdown to filter by club */}
+        <CardContent className="container mx-auto flex flex-col gap-3">  
+          <div className="w-48">
+            <Select onValueChange={handleClubChange} className="w-32">
+              <SelectTrigger>
+                <SelectValue placeholder="Select Club" />
+              </SelectTrigger>
+              <SelectContent>
+                {clubs.map((club) => (
+                  <SelectItem key={club.club_id} value={club.club_name}>
+                    {club.club_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DataTable columns={columns} data={filteredData} />
+        </CardContent>
+      </Card>
     </div>
-  )
-}
+  );
+};
 
-export default page
+export default Page;

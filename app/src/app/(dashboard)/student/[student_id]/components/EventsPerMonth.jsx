@@ -1,61 +1,92 @@
-"use client"
-import { TrendingUp } from "lucide-react"
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts"
+"use client";
+
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { TrendingUp } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
-const chartData = [
-  { month: "January", desktop: 5, mobile: 80 },
-  { month: "February", desktop: 5, mobile: 200 },
-  { month: "March", desktop: 4, mobile: 120 },
-  { month: "April", desktop: 2, mobile: 190 },
-  { month: "May", desktop: 0, mobile: 130 },
-  { month: "June", desktop: 3, mobile: 140 },
-]
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "hsl(var(--chart-1))",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "hsl(var(--chart-2))",
-  },
-  label: {
-    color: "hsl(var(--background))",
-  },
-} 
+} from "@/components/ui/chart";
+import { useParams } from "next/navigation";
+
 export default function EventsPerMonth() {
+  const [chartData, setChartData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const API_BASE_URL = "http://localhost:8000/api";  // Adjust to your actual API URL
+  const params = useParams();
+  useEffect(() => {
+    const id = params.student_id;  // Replace with dynamic student ID if needed
+    const fetchEvents = async () => {
+      try {
+        const eventParticipationRes = await axios.get(`${API_BASE_URL}/student/${id}/events/`);
+        const events = eventParticipationRes.data.events;
+
+        // Process the events to count by month
+        const eventCountByMonth = events.reduce((acc, event) => {
+          const month = new Date(event.event_date).toLocaleString('default', { month: 'long' });
+          if (!acc[month]) {
+            acc[month] = 0;
+          }
+          acc[month] += 1;
+          return acc;
+        }, {});
+
+        // Transform data into chart-friendly format
+        const formattedData = Object.keys(eventCountByMonth).map((month) => ({
+          month,
+          desktop: eventCountByMonth[month],
+        }));
+
+        setChartData(formattedData);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  const chartConfig = {
+    desktop: {
+      label: "Events",
+      color: "hsl(var(--chart-1))",
+    },
+    label: {
+      color: "hsl(var(--background))",
+    },
+  };
+
   return (
     <div>
-        <Card>
+      <Card>
         <CardHeader>
-            <CardTitle>Number of Events per Month</CardTitle>
-            <CardDescription>January - June 2024</CardDescription>
+          <CardTitle>Number of Events per Month</CardTitle>
+          <CardDescription>Monthly Event Participation</CardDescription>
         </CardHeader>
         <CardContent>
-            <ChartContainer config={chartConfig}>
+          <ChartContainer config={chartConfig}>
             <BarChart
-                accessibilityLayer
-                data={chartData}
-                layout="vertical"
-                margin={{
+              accessibilityLayer
+              data={chartData}
+              layout="vertical"
+              margin={{
                 right: 16,
-                }}
+              }}
             >
-                <CartesianGrid horizontal={false} />
-                <YAxis
+              <CartesianGrid horizontal={false} />
+              <YAxis
                 dataKey="month"
                 type="category"
                 tickLine={false}
@@ -63,45 +94,32 @@ export default function EventsPerMonth() {
                 axisLine={false}
                 tickFormatter={(value) => value.slice(0, 3)}
                 hide
-                />
-                <XAxis dataKey="desktop" type="number" hide />
-                <ChartTooltip
+              />
+              <XAxis dataKey="desktop" type="number" hide />
+              <ChartTooltip
                 cursor={false}
                 content={<ChartTooltipContent indicator="line" />}
-                />
-                <Bar
-                dataKey="desktop"
-                layout="vertical"
-                fill="var(--color-desktop)"
-                radius={4}
-                >
+              />
+              <Bar dataKey="desktop" layout="vertical" fill="var(--color-desktop)" radius={4}>
                 <LabelList
-                    dataKey="month"
-                    position="insideLeft"
-                    offset={8}
-                    className="fill-[--color-label]"
-                    fontSize={12}
+                  dataKey="month"
+                  position="insideLeft"
+                  offset={8}
+                  className="fill-[--color-label]"
+                  fontSize={12}
                 />
                 <LabelList
-                    dataKey="desktop"
-                    position="right"
-                    offset={8}
-                    className="fill-foreground"
-                    fontSize={12}
+                  dataKey="desktop"
+                  position="right"
+                  offset={8}
+                  className="fill-foreground"
+                  fontSize={12}
                 />
-                </Bar>
+              </Bar>
             </BarChart>
-            </ChartContainer>
+          </ChartContainer>
         </CardContent>
-        {/* <CardFooter className="flex-col items-start gap-2 text-sm">
-            <div className="flex gap-2 font-medium leading-none">
-            Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-            </div>
-            <div className="leading-none text-muted-foreground">
-            Showing total visitors for the last 6 months
-            </div>
-        </CardFooter> */}
-        </Card>
+      </Card>
     </div>
-  )
+  );
 }

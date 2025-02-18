@@ -16,12 +16,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.core.exceptions import ObjectDoesNotExist
 from .models import (
     Student, Club, Event, ClubMembers, Subject, Semester, Teacher, 
-    Assignment, Topic, Chapter, AssignmentSubmission, StudentMarks, Assessment, Attendance
+    Assignment, Topic, Chapter, AssignmentSubmission, StudentMarks, 
+    Assessment, Attendance, EventParticipation
 )
 from .serializers import (
-    StudentSerializer, ClubSerializer, EventSerializer, SubjectSerializer, 
+    StudentSerializer, 
+    ClubSerializer, 
+    EventSerializer, SubjectSerializer, 
     AssignmentSerializer, TopicSerializer, ChapterSerializer, ClubMemberSerializer, 
     AttendanceSerializer, StudentMarksSerializer
 )
@@ -344,44 +348,87 @@ class EventViewSet(viewsets.ModelViewSet):
         event.attendees.add(student)
         return Response({"message": "Successfully joined the event"}, status=status.HTTP_200_OK)
     
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])  # <-- Restrict access to authenticated users
-def get_clubs(request):
-    clubs = Club.objects.all()
-    clubs_data = [{"club_name": club.club_name, "club_category": club.club_category} for club in clubs]
-    return JsonResponse({"clubs": clubs_data}, safe=False)
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])  # <-- Restrict access to authenticated users
+# def get_clubs(request):
+#     clubs = Club.objects.all()
+#     clubs_data = [{"club_name": club.club_name, "club_category": club.club_category} for club in clubs]
+#     return JsonResponse({"clubs": clubs_data}, safe=False)
 
 
-@api_view(['GET'])
-@authentication_classes([JWTAuthentication])  
-@permission_classes([IsAuthenticated])  
-def get_clubs_by_student(request):
-    # 🔥 Manually authenticate user
-    auth = JWTAuthentication()
-    user, token = auth.authenticate(request)  
+# @api_view(['GET'])
+# @authentication_classes([JWTAuthentication])  
+# @permission_classes([IsAuthenticated])  
+# def get_clubs_by_student(request):
+#     # 🔥 Manually authenticate user
+#     auth = JWTAuthentication()
+#     user, token = auth.authenticate(request)  
 
-    if user is None:
-        return JsonResponse({"error": "Invalid or missing token"}, status=401)
+#     if user is None:
+#         return JsonResponse({"error": "Invalid or missing token"}, status=401)
 
-    print("🔥 DEBUGGING START 🔥")
-    print(f"👉 Headers: {request.headers}")  
-    print(f"👉 Authorization: {request.headers.get('Authorization')}")  
-    print(f"👉 User from JWT: {user} (ID: {getattr(user, 'id', None)})")  
-    print(f"👉 Is Authenticated: {user.is_authenticated}")  
+#     print("🔥 DEBUGGING START 🔥")
+#     print(f"👉 Headers: {request.headers}")  
+#     print(f"👉 Authorization: {request.headers.get('Authorization')}")  
+#     print(f"👉 User from JWT: {user} (ID: {getattr(user, 'id', None)})")  
+#     print(f"👉 Is Authenticated: {user.is_authenticated}")  
 
-    # 🔍 Try fetching the user manually to avoid mismatches
+#     # 🔍 Try fetching the user manually to avoid mismatches
+#     try:
+#         student = Student.objects.get(id=user.id)
+#         print(f"✅ Matched Student: {student}")
+#     except Student.DoesNotExist:
+#         return JsonResponse({"error": "Student not found"}, status=404)
+
+#     # Fetch the clubs for the authenticated student
+#     memberships = ClubMembers.objects.filter(student=student)
+#     clubs_data = [{"club_name": m.club.club_name, "club_category": m.club.club_category} for m in memberships]
+
+#     print(f"🎯 Clubs for {student}: {clubs_data}")  
+#     return JsonResponse({"student_clubs": clubs_data}, safe=False)
+
+def get_student_clubs(request, student_id):
     try:
-        student = Student.objects.get(id=user.id)
-        print(f"✅ Matched Student: {student}")
-    except Student.DoesNotExist:
+        # Fetch all ClubMembers for the given student_id
+        club_memberships = ClubMembers.objects.filter(student_id=student_id)
+        
+        # Create a list of club details
+        clubs = []
+        for club_member in club_memberships:
+            club = club_member.club
+            events_participated = []
+
+            # Fetch events that the student is participating in for this club
+            event_participations = EventParticipation.objects.filter(
+                club_member=club_member
+            )
+            
+            for participation in event_participations:
+                event = participation.event
+                events_participated.append({
+                    "event_id": event.event_id,
+                    "event_name": event.event_name,
+                    "event_date": event.event_date,
+                    "role_in_event": participation.role_in_event,
+                    "achievement": participation.achievement,
+                })
+            
+            clubs.append({
+                "club_id": club.club_id,
+                "club_name": club.club_name,
+                "club_category": club.club_category,
+                "club_description": club.club_description,
+                "faculty_incharge": club.faculty_incharge.username if club.faculty_incharge else None,
+                "created_date": club.created_date,
+                "events_participated": events_participated,  # Include the events the student is part of
+            })
+        
+        # Return the clubs and events data as JSON
+        return JsonResponse({"clubs": clubs}, safe=False)
+
+    except ObjectDoesNotExist:
         return JsonResponse({"error": "Student not found"}, status=404)
 
-    # Fetch the clubs for the authenticated student
-    memberships = ClubMembers.objects.filter(student=student)
-    clubs_data = [{"club_name": m.club.club_name, "club_category": m.club.club_category} for m in memberships]
-
-    print(f"🎯 Clubs for {student}: {clubs_data}")  
-    return JsonResponse({"student_clubs": clubs_data}, safe=False)
 
 # @login_required
 def get_events_by_student(request):
@@ -391,41 +438,129 @@ def get_events_by_student(request):
     events_data = [{'event_name': event.event_name, 'event_date': event.event_date, 'club_name': event.club.club_name} for event in events]
     return JsonResponse({'student_events': events_data}, safe=False)
 
+def get_student_event_participations(request, student_id):
+    # Fetch the student object, raising 404 error if not found
+    student = get_object_or_404(Student, pk=student_id)
+
+    # Get all the club memberships of the student
+    club_memberships = student.club_memberships.all()
+
+    # Collect all the events the student has participated in
+    participations = EventParticipation.objects.filter(
+        club_member__in=club_memberships
+    ).select_related('event', 'club_member')
+
+    # Prepare a list of event details
+    event_details = []
+    for participation in participations:
+        event_details.append({
+            'event_name': participation.event.event_name,
+            'event_date': participation.event.event_date,
+            'role_in_event': participation.role_in_event,
+            'achievement': participation.achievement,
+            'club_name': participation.club_member.club.club_name
+        })
+
+    # Return the event details as JSON response
+    return JsonResponse({'events': event_details})
+
+# def get_club_profile(request, club_id):
+#     """Fetch club details, members, and events"""
+#     club = get_object_or_404(Club, pk=club_id)
+#     # Get members
+#     members = ClubMembers.objects.filter(club=club)
+#     members_data = [
+#         {
+#             "student_id": member.student.id,
+#             "name": member.student.username,
+#             "email": member.student.email,
+#             "role_in_club": member.role_in_club,
+#         }
+#         for member in members
+#     ]
+#     # Get club events
+#     events = Event.objects.filter(club=club)
+#     events_data = [
+#         {
+#             "event_id": event.id,
+#             "event_name": event.name,
+#             "event_date": event.date,
+#             "description": event.description,
+#         }
+#         for event in events
+#     ]
+#     club_data = {
+#         "club_name": club.club_name,
+#         "club_category": club.club_category,
+#         "faculty_incharge": club.faculty_incharge.username,
+#         "leader": club.leader.username,
+#         "description": club.club_description,  # Make sure the model has a 'description' field
+#         "members": members_data,
+#         "events": events_data,
+#     }
+#     return JsonResponse({"club_profile": club_data}, safe=False)
+
+# @api_view(['GET'])
+from django.http import JsonResponse
+from .models import Club, ClubMembers, Event, EventParticipation
+
 def get_club_profile(request, club_id):
-    """Fetch club details, members, and events"""
+    # Fetch the club object, raising 404 error if not found
     club = get_object_or_404(Club, pk=club_id)
-    # Get members
-    members = ClubMembers.objects.filter(club=club)
-    members_data = [
-        {
-            "student_id": member.student.id,
-            "name": member.student.username,
-            "email": member.student.email,
-            "role_in_club": member.role_in_club,
-        }
-        for member in members
-    ]
-    # Get club events
-    events = Event.objects.filter(club=club)
-    events_data = [
-        {
-            "event_id": event.id,
-            "event_name": event.name,
-            "event_date": event.date,
-            "description": event.description,
-        }
-        for event in events
-    ]
-    club_data = {
-        "club_name": club.club_name,
-        "club_category": club.club_category,
-        "faculty_incharge": club.faculty_incharge.username,
-        "leader": club.leader.username,
-        "description": club.club_description,  # Make sure the model has a 'description' field
-        "members": members_data,
-        "events": events_data,
+
+    # Get all the members of the club
+    club_members = ClubMembers.objects.filter(club=club).select_related('student')
+
+    # Get all the events of the club
+    club_events = Event.objects.filter(club=club)
+
+    # Prepare a list of club member details
+    members_details = []
+    for member in club_members:
+        members_details.append({
+            'member_id': member.member_id,
+            'student_username': member.student.username,
+            'student_name': f"{member.student.first_name} {member.student.last_name}",
+            'role_in_club': member.role_in_club,
+            'date_joined': member.date_joined,
+        })
+
+    # Prepare a list of club event details
+    events_details = []
+    for event in club_events:
+        # Get participants for the event
+        event_participants = EventParticipation.objects.filter(event=event).select_related('club_member')
+        participants = []
+        for participant in event_participants:
+            participants.append({
+                'student_username': participant.club_member.student.username,
+                'role_in_event': participant.role_in_event,
+                'achievement': participant.achievement
+            })
+        
+        events_details.append({
+            'event_id': event.event_id,
+            'event_name': event.event_name,
+            'description': event.description,
+            'event_date': event.event_date,
+            'participants': participants
+        })
+
+    # Prepare the final response, including the leader's student_id
+    club_profile = {
+        'club_id': club.club_id,
+        'club_name': club.club_name,
+        'club_category': club.club_category,
+        'club_description': club.club_description,
+        'faculty_incharge': club.faculty_incharge.username if club.faculty_incharge else "N/A",
+        'leader': f"{club.leader.first_name} {club.leader.last_name}" if club.leader else "No Leader Assigned",
+        'leader_id': club.leader.student_id if club.leader else None,  # Add leader's student_id
+        'members': members_details,
+        'events': events_details,
     }
-    return JsonResponse({"club_profile": club_data}, safe=False)
+
+    # Return the club profile details as a JSON response
+    return JsonResponse({'club_profile': club_profile})
 
 # now for teachers to add assignment
 @csrf_exempt

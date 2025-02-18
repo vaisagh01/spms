@@ -2,7 +2,8 @@ from django.contrib import admin
 from .models import (
     Student, Club, ClubMembers, Assignment, Subject, Teacher,  
     Assessment, Course, AssignmentSubmission, Topic, Chapter,
-    StudentMarks, Alumni, Club, ClubMembers, Event, User
+    StudentMarks, Alumni, Club, ClubMembers, Event, User,
+    EventParticipation
 )
 class TeacherAdmin(admin.ModelAdmin):
     filter_horizontal = ('courses',)  # ✅ Changes multi-select box to a better UI
@@ -72,6 +73,7 @@ admin.site.register(User)  # ✅ Register Topics
 admin.site.register(Club, ClubAdmin)
 admin.site.register(ClubMembers, ClubMembersAdmin)
 admin.site.register(Event, EventAdmin)
+admin.site.register(EventParticipation)
 # admin.site.register(Student, StudentAdmin)
 # admin.site.register(Alumni, AlumniAdmin)
 # admin.site.register(Teacher, TeacherAdmin)
