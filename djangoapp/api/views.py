@@ -474,3 +474,48 @@ def post_assignment(request, teacher_id):
     
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+    
+def get_student_marks_by_assessment_id(request, assessment_id):
+    try:
+        # Fetch all student marks related to the given assessment_id
+        student_marks = StudentMarks.objects.filter(assessment_id=assessment_id).select_related("student", "assessment")
+
+        if not student_marks.exists():
+            return JsonResponse({"error": "No student marks found for this assessment"}, status=404)
+
+        # Dictionary to store student data
+        student_marks_data = {}
+
+        for mark in student_marks:
+            student_id = mark.student.student_id
+            student_name = f"{mark.student.first_name} {mark.student.last_name}"
+
+            # If student_id not already in dictionary, initialize entry
+            if student_id not in student_marks_data:
+                student_marks_data[student_id] = {
+                    "student_name": student_name,
+                    "marks": []
+                }
+
+            # Append marks obtained for this assessment
+            student_marks_data[student_id]["marks"].append({
+                "assessment_id": mark.assessment_id,
+                "marks_obtained": mark.marks_obtained,
+                "total_marks": mark.assessment.total_marks,
+                "subject_name": mark.assessment.subject.subject_name,
+                "subject_code": mark.assessment.subject.subject_code,
+                "assessment_type": mark.assessment.assessment_type,
+            })
+
+        # Convert dictionary to list format for JSON response
+        response_data = {
+            "assessment_id": assessment_id,
+            "students": list(student_marks_data.values())
+        }
+
+        return JsonResponse(response_data, safe=False)
+
+    except Assessment.DoesNotExist:
+        return JsonResponse({"error": "Assessment not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

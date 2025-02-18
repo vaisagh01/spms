@@ -11,7 +11,7 @@ from .views import (
     get_subjects_by_student, get_assignments_by_student, get_assessments_and_marks_by_student,
     post_assignment, get_clubs_by_student, get_events_by_student,
     admin_dashboard, teacher_dashboard, student_dashboard, alumni_dashboard,
-    api_login
+    api_login, get_student_marks_by_assessment_id
 )
 
 # Setting up DRF Default Router
@@ -56,4 +56,5 @@ urlpatterns = [
 
     # Event-related Views
     path('student/events/', get_events_by_student, name='get_events_by_student'),
+    path('get_student_marks_by_assessment_id/<int:assessment_id>/', get_student_marks_by_assessment_id, name='get_student_marks'),
 ]
