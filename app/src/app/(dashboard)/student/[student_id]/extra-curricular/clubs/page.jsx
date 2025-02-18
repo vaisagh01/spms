@@ -1,68 +1,44 @@
-"use client"
-import MyCard from '@/components/MyCard'
-import Notifications from '../../components/Notifications'
-import UpcomingEvents from '../../components/UpcomingEvents'
-import { useUser } from '@/app/context/UserContext'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import axios from 'axios'
-const clubs = [
-  {
-    id:1,
-    title: "Club 1",
-    img: "club_image.jpg",
-    desc: "SC2",
-    // button: true
-  },
-  
-  {
-    id:2,
-    title: "Club 2",
-    img: "club_image.jpg",
-    desc: "SC2",
-    // button: true
-  },
-  {
-    id:3,
-    title: "Club 3",
-    img: "club_image.jpg",
-    desc: "SC3",
-    // button: true
-  },
-  {
-    id:4,
-    title: "Club 4",
-    img: "club_image.jpg",
-    desc: "SC4",
-    // button: true
-  },
-  {
-    id:5,
-    title: "Club 5",
-    img: "club_image.jpg",
-    desc: "SC5",
-    // button: true
-  },
-  {
-    id:6,
-    title: "Club 6",
-    img: "club_image.jpg",
-    desc: "SC6",
-    // button: true
-  },
+"use client";
 
-]
-const page = () => {
-  const {user} = useUser();
-  const axios = require('axios');  // Only needed if you're using Node.js
-  const router = useRouter()
-  axios.get('http://127.0.0.1:8000/api/clubs/')
-    .then(response => {
-      console.log("Clubs Data:", response.data);  // This will log the clubs' JSON data
-    })
-    .catch(error => {
-      console.error("Error fetching clubs:", error);
-    });
+import React, { useEffect, useState } from 'react';
+import MyCard from '@/components/MyCard';
+import { useUser } from '@/app/context/UserContext';
+import Link from 'next/link';
+import axios from 'axios';
+import { useParams, useRouter } from 'next/navigation';
+import ClubCard from '@/components/ClubCard';
+
+const ClubsPage = () => {
+  const { user } = useUser(); // Get user context (student_id)
+  const [clubs, setClubs] = useState([]); // State to store the clubs the student is part of
+  const [loading, setLoading] = useState(true); // State for loading
+  const [error, setError] = useState(null); // State for error
+  const router = useRouter();
+  const params = useParams();
+  useEffect(() => {
+    const id = params.student_id; // Get student_id from URL params
+    // Fetch the clubs data based on student_id
+    axios.get(`http://127.0.0.1:8000/api/student/${id}/clubs/`)
+      .then(response => {
+        setClubs(response.data.clubs); // Assuming the response returns { clubs: [club_data] }
+        setLoading(false);
+      })
+      .catch(error => {
+        setError("Failed to fetch clubs");
+        setLoading(false);
+      });
+  }, [user]);
+  console.log(clubs);
+  
+  if (loading) {
+    return <div>Loading clubs...</div>; // Display loading state
+  }
+
+  if (error) {
+    return <div>{error}</div>; // Display error if fetching fails
+  }
+  console.log(clubs);
+  
   return (
     <div className='p-4'>
       <div className='flex flex-1 flex-col space-y-2'>
@@ -74,15 +50,19 @@ const page = () => {
         </div>
 
         <div className='grid gap-4 md:grid-cols-4 lg:grid-cols-4'>
-          {clubs.map((item,index) => (
-            <Link key={index} href={`clubs/${item.id}`}>
-              <MyCard data={item} />
-            </Link>
-          ))}
+          {clubs.length === 0 ? (
+            <div>No clubs found for this student.</div> // Display message if no clubs are found
+          ) : (
+            clubs.map((item, index) => (
+              <Link key={index} href={`clubs/${item.club_id}`}>
+                <ClubCard data={item} />
+              </Link>
+            ))
+          )}
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default page
+export default ClubsPage;

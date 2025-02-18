@@ -1,17 +1,17 @@
 # Django & DRF Imports
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+# from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # Project-specific Views Imports
 from . import views
 from .views import (
-    StudentViewSet, ClubViewSet, EventViewSet, ClubMembersViewSet,
+    StudentViewSet, ClubViewSet, EventViewSet, ClubMembersViewSet, api_login, get_club_profile,
     get_student_details, get_topics_by_subject, get_chapters_by_topic,
     get_subjects_by_student, get_assignments_by_student, get_assessments_and_marks_by_student,
-    post_assignment, get_clubs_by_student, get_events_by_student,
+    post_assignment, get_student_clubs, get_events_by_student,
     admin_dashboard, teacher_dashboard, student_dashboard, alumni_dashboard,
-    api_login, get_student_marks_by_assessment_id
+    api_login, get_student_marks_by_assessment_id, get_student_event_participations, get_club_profile
 )
 
 # Setting up DRF Default Router
@@ -26,10 +26,11 @@ urlpatterns = [
     path('', include(router.urls)),
 
     # Views for Clubs
-    path('clubs/', views.get_clubs, name='get_clubs'),
+    # path('clubs/', views.get_clubs, name='get_clubs'),
     # path('club/<int:club_id>/', views.get_club_by_id, name='get_club_by_id'),
-    path('club/<int:club_id>/profile/', views.get_club_profile, name='get_club_profile'),
-    path('clubs/student/<int:student_id>/', get_clubs_by_student, name='get_clubs_by_student'),
+    path('clubs/<int:club_id>/profile/', get_club_profile, name='club-profile'),
+    # path('clubs/student/<int:student_id>/', get_clubs_by_student, name='get_clubs_by_student'),
+    path('student/<int:student_id>/clubs/', get_student_clubs, name='student_clubs'),
 
     # Views for Students
     path('student/<int:student_id>/', get_student_details, name='get_student_details'),
@@ -57,4 +58,5 @@ urlpatterns = [
     # Event-related Views
     path('student/events/', get_events_by_student, name='get_events_by_student'),
     path('get_student_marks_by_assessment_id/<int:assessment_id>/', get_student_marks_by_assessment_id, name='get_student_marks'),
+    path('student/<int:student_id>/events/', views.get_student_event_participations, name='student_events'),
 ]
