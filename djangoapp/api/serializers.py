@@ -96,3 +96,7 @@ class AssignmentSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssignmentSubmission
         fields = '__all__'
+class StudentMarksSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentMarks
+        fields = '__all__'
