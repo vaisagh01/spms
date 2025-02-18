@@ -45,10 +45,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'api',
-    'corsheaders',
+    'curricular',
     'rest_framework_simplejwt',
+    'extracurricular',
+    'corsheaders',
     'djangoapp',
+    # 'api',
     
     
 ]
@@ -152,7 +154,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'api.User'
+AUTH_USER_MODEL = 'curricular.User'
 CORS_ALLOW_ALL_ORIGINS = True
 
 LOGIN_REDIRECT_URL = reverse_lazy("admin_dashboard") 

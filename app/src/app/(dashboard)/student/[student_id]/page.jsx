@@ -8,8 +8,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import EventsPerMonth from "./components/EventsPerMonth";
 import EventDates from "./components/EventDates";
-import AllAssignments from "./components/AllAssignments";
-
+import AllClubs from "./components/AllClubs";
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 const Page = () => {
@@ -36,14 +35,14 @@ const Page = () => {
     <div className="p-4">
       <div className="flex flex-1 flex-col space-y-2 gap-1">
         <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-4xl font-bold tracking-tight">
-            <p className="text-slate-500 text-2xl">Hi, Welcome back</p> {studentDetails ? `${studentDetails.first_name} ${studentDetails.last_name}` : ""}!
+          <h2 className="text-4xl flex items-center gap-4 font-bold tracking-tight">
+            <p className="text-slate-500">Hey! </p> {studentDetails ? `${studentDetails.first_name} ${studentDetails.last_name}` : ""}!
           </h2>
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-6 lg:grid-cols-6">
           <div className="col-span-2 md:col-span-2">
-            <AllAssignments />
+            <AllClubs />
           </div>
           <div className="col-span-4 md:col-span-4">{<EventDates />}</div>
           <div className="col-span-4 md:col-span-3">{<Notifications />}</div>

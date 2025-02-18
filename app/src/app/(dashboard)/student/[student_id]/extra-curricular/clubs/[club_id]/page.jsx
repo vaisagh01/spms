@@ -7,9 +7,11 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableHead, TableCell, TableBody } from "@/components/ui/table";
 import { useParams } from "next/navigation";
-import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger,DialogHeader, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DataTable } from "../../events/data-table";
+import ClubsPage from "../page";
 
 const ClubProfile = () => {
   const [club, setClub] = useState(null);
@@ -73,16 +75,40 @@ const ClubProfile = () => {
     }
   };
   const handleDeleteMember = async (member_id) => {
-    try {
-      await axios.delete(`http://localhost:8000/api/clubs/${params.club_id}/delete_member/`, { data: { member_id: member_id } });
-      setClub((prevClub) => ({
-        ...prevClub,
-        members: prevClub.members.filter(member => member.member_id !== member_id)
-      }));
-    } catch (error) {
-      console.error("Error deleting member:", error);
+    if (member_id === club.leader_id) {
+        alert("You cannot remove the club leader!");
+        return;
     }
-  };
+
+    try {
+        await axios.delete(`http://localhost:8000/api/clubs/${params.club_id}/delete_member/`, {
+            data: { member_id },
+            headers: { "Content-Type": "application/json" }
+        });
+
+        setClub((prevClub) => ({
+            ...prevClub,
+            members: prevClub.members.filter(member => member.member_id !== member_id)
+        }));
+    } catch (error) {
+        console.error("Error deleting member:", error.response ? error.response.data : error);
+    }
+};
+    const handleDeleteEvent = async (event_id) => {
+      try {
+        await axios.delete(`http://localhost:8000/api/clubs/${params.club_id}/delete_event/`, { 
+          data: { event_id: event_id } 
+        });
+        setClub((prevClub) => ({
+          ...prevClub,
+          events: prevClub.events.filter(event => event.event_id !== event_id)
+        }));
+      } catch (error) {
+        console.error("Error deleting event:", error);
+      }
+    };
+    console.log(club);
+    
   const handleAddEvent = async () => {
     try {
       const response = await axios.post(`http://localhost:8000/api/add_event/${params.club_id}/`, {
@@ -96,17 +122,6 @@ const ClubProfile = () => {
       }));
     } catch (error) {
       console.error("Error adding event:", error.response ? error.response.data : error);
-    }
-  };
-  const handleDeleteEvent = async (event_id) => {
-    try {
-      await axios.delete(`http://localhost:8000/api/clubs/${params.club_id}/delete_event/`, { data: { event_id: event_id } });
-      setClub((prevClub) => ({
-        ...prevClub,
-        events: prevClub.events.filter(event => event.event_id !== event_id)
-      }));
-    } catch (error) {
-      console.error("Error deleting event:", error);
     }
   };
   if (!club) return <div>Loading...</div>;
@@ -127,7 +142,7 @@ const ClubProfile = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-lg">{club.club_description || "No description available"}</p>
+          <p className="text-lg">{club.description || "No description available"}</p>
           <p className="mt-4 text-md">Faculty In Charge: {club?.faculty_incharge || "N/A"}</p>
           <p className="text-md">Leader: {club.leader || "N/A"}</p>
 
@@ -139,7 +154,7 @@ const ClubProfile = () => {
                 {isLeader && (
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="color"  className="mt-4 bg-indigo-700 text-white">Add Member</Button>
+                      <Button variant="color" className="mt-4 bg-indigo-700 text-white">Add Member</Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogTitle>Add New Member</DialogTitle>
@@ -177,7 +192,7 @@ const ClubProfile = () => {
                       <TableCell>{member.role_in_club}</TableCell>
                       {isLeader && (
                         <TableCell>
-                          <Button variant="destructive" onClick={() => handleDeleteMember(member.member_id)}>Delete</Button>
+                          {member.role_in_club==="Member" ?<Button variant="destructive" onClick={() => handleDeleteMember(member.member_id)}>Delete</Button> : null }
                         </TableCell>
                       )}
                     </TableRow>
@@ -235,6 +250,23 @@ const ClubProfile = () => {
                       <TableRow key={index}>
                         <TableCell>{event.event_name}</TableCell>
                         <TableCell>{event.event_date}</TableCell>
+                        <TableCell>
+                        <Dialog>
+                          <DialogTrigger>View Participants</DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Participants of {event.event_name}</DialogTitle>
+                            </DialogHeader>
+
+                            {
+                              event?.participants.map((item,index) => (
+                                <div key={index}>{index+1} -  {item.participant_name}</div>
+                              ))
+                            }
+                          </DialogContent>
+                        </Dialog>
+                        </TableCell>
+
                         {
                           isLeader && (
                             <TableCell>
@@ -256,3 +288,30 @@ const ClubProfile = () => {
 };
 
 export default ClubProfile;
+const columns = [
+  {
+    accessorKey: "event_name", // The event name
+    header: "Event Name", // Column header
+    cell: (info) => info.getValue(), // Display event name
+  },
+  {
+    accessorKey: "club_name", // The club name
+    header: "Club", // Column header
+    cell: (info) => info.getValue(), // Display club name
+  },
+  {
+    accessorKey: "role_in_event", // The role of the student in the event (e.g. Speaker, Volunteer)
+    header: "Role", // Column header
+    cell: (info) => info.getValue(), // Display role
+  },
+  {
+    accessorKey: "achievement", // The role of the student in the event (e.g. Speaker, Volunteer)
+    header: "Achievement", // Column header
+    cell: (info) => info.getValue(), // Display role
+  },
+  {
+    accessorKey: "event_date", // The date of the event
+    header: "Date", // Column header
+    cell: (info) => new Date(info.getValue()).toLocaleDateString(), // Format the date
+  },
+]

@@ -38,7 +38,7 @@ function StudentClubs() {
         <CardTitle>Clubs & Events</CardTitle>
         <CardDescription>View the clubs and events the student is part of.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-h-[335px]">
         {/* Sorting */}
         <div className="flex gap-1">
           <Select onValueChange={setSortOrder} defaultValue="desc">
@@ -58,8 +58,8 @@ function StudentClubs() {
             <thead className="bg-gray-100">
               <tr>
                 <th className="px-4 py-2">Club Name</th>
-                <th className="px-4 py-2">Category</th>
-                <th className="px-4 py-2">Description</th>
+                {/* <th className="px-4 py-2">Category</th> */}
+                {/* <th className="px-4 py-2">Description</th> */}
                 <th className="px-4 py-2">Latest Event</th>
               </tr>
             </thead>
@@ -78,8 +78,8 @@ function StudentClubs() {
                   return (
                     <tr key={club.club_id} className="border-t">
                       <td className="px-4 py-2">{club.club_name}</td>
-                      <td className="px-4 py-2">{club.club_category}</td>
-                      <td className="px-4 py-2">{club.club_description}</td>
+                      {/* <td className="px-4 py-2">{club.club_category}</td> */}
+                      {/* <td className="px-4 py-2">{club.club_description}</td> */}
                       <td className="px-4 py-2">
                         {latestEvent ? (
                           <Link href={`/events/${latestEvent.event_id}`} className="text-blue-500 hover:underline">
