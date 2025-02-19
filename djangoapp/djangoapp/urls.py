@@ -25,6 +25,7 @@ urlpatterns = [
     path("login/", auth_views.LoginView.as_view(), name="login"),
     path('curricular/', include('curricular.urls')),
     path('extracurricular/', include('extracurricular.urls')),
+    path('alumni/', include('alumni.urls')),
     
     
 ]
