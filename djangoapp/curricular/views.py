@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
 from rest_framework.parsers import JSONParser
-from .models import Assessment, Assignment, AssignmentSubmission, Chapter, Student, StudentMarks, Subject, Teacher, Topic
+from .models import Assessment, Assignment, AssignmentSubmission, Chapter, Student, StudentMarks, Subject, Teacher, Topic,Course
 from .serializers import StudentMarksSerializer
 # from djangoapp.extracurricular.models import Club, ClubMembers, Event, EventParticipation
 
@@ -345,3 +345,70 @@ def get_assessments_and_marks_by_student(request, student_id):
         "assessments": assessments_data,
         "marks": marks_data
     })
+@csrf_exempt
+def get_assignment_submissions(request, course_id):
+    if request.method != "GET":
+        return JsonResponse({"error": "Invalid request method"}, status=405)
+
+    try:
+        course = Course.objects.get(course_id=course_id)
+        submissions = AssignmentSubmission.objects.filter(assignment__subject__course=course)
+
+        submission_data = [
+            {
+                "submission_id": submission.submission_id,
+                "student": submission.student.student_id,
+                "assignment": submission.assignment.assignment_id,
+                "marks_obtained": submission.marks_obtained,
+                #"submitted_at": submission.submitted_at.strftime("%Y-%m-%d %H:%M:%S"),
+                "file_url": request.build_absolute_uri(submission.file.url) if submission.file else None,
+            }
+            for submission in submissions
+        ]
+
+        return JsonResponse({"submissions": submission_data}, status=200)
+
+    except ObjectDoesNotExist:
+        return JsonResponse({"error": "Course not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+@csrf_exempt
+def upload_assignment_submission(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request method"}, status=405)
+
+    try:
+        student_id = request.POST.get("student")
+        assignment_id = request.POST.get("assignment")
+        file = request.FILES.get("file")
+        date=request.POST.get("submission_date")
+        if not student_id or not assignment_id or not file:
+            return JsonResponse({"error": "Missing required fields"}, status=400)
+
+        student = Student.objects.get(pk=student_id)
+        assignment = Assignment.objects.get(pk=assignment_id)
+
+        # Save file
+        file_name = default_storage.save(f"submissions/{file.name}", file)
+
+        submission = AssignmentSubmission.objects.create(
+            student=student,
+            assignment=assignment,
+            file=file_name,
+            submission_date=date
+        )
+
+        return JsonResponse({
+            "message": "Submission uploaded successfully",
+            "submission_id": submission.submission_id,
+            "file_url": request.build_absolute_uri(submission.file.url),
+        }, status=201)
+
+    except Student.DoesNotExist:
+        return JsonResponse({"error": "Student not found"}, status=404)
+    except Assignment.DoesNotExist:
+        return JsonResponse({"error": "Assignment not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
