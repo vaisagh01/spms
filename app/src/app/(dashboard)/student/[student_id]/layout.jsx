@@ -14,10 +14,10 @@ export default function StudentLayout({ children }) {
   const updateUrls = (navData) => {
     return navData.map((item) => ({
       ...item,
-      url: item.url ? item.url.replace("student/2", `student/${student_id}`) : item.url, // Update top-level URL
+      url: item.url ? item.url.replace("student/2", `teacher/${student_id}`) : item.url, // Update top-level URL
       items: item.items?.map((subItem) => ({
         ...subItem,
-        url: subItem.url.replace("student/2", `student/${student_id}`), // Update nested URLs
+        url: subItem.url.replace("student/2", `teacher/${student_id}`), // Update nested URLs
       })),
     }));
   };

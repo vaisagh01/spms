@@ -26,7 +26,7 @@ const Page = () => {
     if (true) {
       const studentId = params.student_id; // Get student_id from URL params
       axios
-        .get(`http://127.0.0.1:8000/api/student/${studentId}/clubs/`)
+        .get(`http://127.0.0.1:8000/extracurricular/student/${studentId}/clubs/`)
         .then((response) => {
           const clubs = response.data.clubs || [];
           setClubData(clubs);

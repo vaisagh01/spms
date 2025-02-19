@@ -18,7 +18,7 @@ const Page = () => {
     const id = params.student_id; // Assuming the student ID is passed as a URL param
     // Fetch events data for the specific student
     axios
-      .get(`http://localhost:8000/api/student/${id}/events/`)
+      .get(`http://localhost:8000/extracurricular/student/${id}/events/`)
       .then((response) => {
         setData(response.data.events);
       })
@@ -28,7 +28,7 @@ const Page = () => {
 
     // Fetch clubs for the Select dropdown
     axios
-      .get(`http://localhost:8000/api/student/${id}/clubs/`)
+      .get(`http://localhost:8000/extracurricular/student/${id}/clubs/`)
       .then((response) => {
         setClubs(response.data.clubs);
       })

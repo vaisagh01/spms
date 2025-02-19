@@ -26,7 +26,7 @@ const ClubProfile = () => {
 
     // Fetch the club profile from the API
     axios
-      .get(`http://localhost:8000/api/clubs/${club_id}/profile/`)
+      .get(`http://localhost:8000/extracurricular/clubs/${club_id}/profile/`)
       .then((response) => {
         const clubData = response.data.club_profile;
         setClub(clubData);
@@ -43,7 +43,7 @@ const ClubProfile = () => {
 
   const handleAddMember = async () => {
     try {
-      const response = await axios.post(`http://localhost:8000/api/add_member/${params.club_id}/`, {
+      const response = await axios.post(`http://localhost:8000/extracurricular/add_member/${params.club_id}/`, {
         username: newMember.username,
         role: newMember.role
       });
@@ -81,7 +81,7 @@ const ClubProfile = () => {
     }
 
     try {
-        await axios.delete(`http://localhost:8000/api/clubs/${params.club_id}/delete_member/`, {
+        await axios.delete(`http://localhost:8000/api/extracurricular/${params.club_id}/delete_member/`, {
             data: { member_id },
             headers: { "Content-Type": "application/json" }
         });
@@ -96,7 +96,7 @@ const ClubProfile = () => {
 };
     const handleDeleteEvent = async (event_id) => {
       try {
-        await axios.delete(`http://localhost:8000/api/clubs/${params.club_id}/delete_event/`, { 
+        await axios.delete(`http://localhost:8000/extracurricular/clubs/${params.club_id}/delete_event/`, { 
           data: { event_id: event_id } 
         });
         setClub((prevClub) => ({
@@ -111,7 +111,7 @@ const ClubProfile = () => {
     
   const handleAddEvent = async () => {
     try {
-      const response = await axios.post(`http://localhost:8000/api/add_event/${params.club_id}/`, {
+      const response = await axios.post(`http://localhost:8000/extracurricular/add_event/${params.club_id}/`, {
         event_name: newEvent.event_name,
         event_date: newEvent.event_date
       });

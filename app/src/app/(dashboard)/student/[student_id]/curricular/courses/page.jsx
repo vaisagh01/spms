@@ -53,7 +53,7 @@ const Page = () => {
   if (error) {
     return <div>Error: {error}</div>;
   }
-
+  
   // Extract unique semesters from subjects
   const semesters = [...new Set(data.subjects.map(subject => subject.semester))];
 

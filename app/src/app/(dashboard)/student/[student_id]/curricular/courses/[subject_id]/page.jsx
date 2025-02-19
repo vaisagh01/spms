@@ -95,7 +95,7 @@ const page = () => {
   
       const fetchData = async () => {
         try {
-          const response = await axios.get(`http://127.0.0.1:8000/extracurricular/topics/subject/${id}/`);
+          const response = await axios.get(`http://127.0.0.1:8000/curricular/topics/subject/${id}/`);
           setData(response.data.topics);
         } catch (error) {
           console.error("Error fetching data:", error);
@@ -120,7 +120,7 @@ const page = () => {
     }
     console.log(data);
     
-  return (
+    return (
     <div className='p-4 ml-8'>
       <div className='flex flex-1 flex-col space-y-2'>
         <div className='flex items-center justify-between space-y-2 my-4'>
