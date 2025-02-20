@@ -129,30 +129,29 @@ class Alumni(User):
     graduation_year = models.IntegerField()  # Year of graduation
     current_job = models.CharField(max_length=255, blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
-
     objects = AlumniManager()
 
     class Meta:
         verbose_name = "Alumni"
         verbose_name_plural = "Alumni"
 
-class Teacher(models.Model):
+class Teacher(User):
     base_role = User.Role.TEACHER
     teacher_id = models.AutoField(primary_key=True)
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    username = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=15)
-    is_staff = models.BooleanField(default=False)
     department = models.CharField(max_length=255)
     designation = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
     hire_date = models.DateField()
     # Change to ManyToManyField to allow multiple courses
     courses = models.ManyToManyField('Course', related_name="teachers", blank=True)
+    objects=StudentManager()
+    
+    class Meta:
+        verbose_name = 'Teacher'
+        verbose_name_plural = 'Teachers'
 
-    def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.designation}"
+
+    
 class Attendance(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="attendance_records")
     course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True,default=1) 

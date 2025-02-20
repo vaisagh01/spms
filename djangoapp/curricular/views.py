@@ -182,6 +182,7 @@ def get_student_marks_by_assessment_id(request, assessment_id):
         return JsonResponse({"error": str(e)}, status=500)
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.files.storage import default_storage
 
 @csrf_exempt
 def create_student_marks(request):
