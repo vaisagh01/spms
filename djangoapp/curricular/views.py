@@ -8,7 +8,14 @@ from rest_framework.parsers import JSONParser
 from .models import Assessment, Assignment, AssignmentSubmission, Chapter, Student, StudentMarks, Subject, Teacher, Topic,Course
 from .serializers import StudentMarksSerializer
 # from djangoapp.extracurricular.models import Club, ClubMembers, Event, EventParticipation
-
+import json
+import datetime
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.parsers import JSONParser
+from .models import Attendance, Student, Subject, Teacher, Course
+from .serializers import AttendanceSerializer
 User = get_user_model()
 @csrf_exempt
 def post_assignment(request, teacher_id):
@@ -412,3 +419,178 @@ def upload_assignment_submission(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+import json
+import datetime
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.parsers import JSONParser
+from .models import Attendance, Student, Subject, Teacher, Course
+from .serializers import AttendanceSerializer
+
+@csrf_exempt
+def mark_attendance(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request method"}, status=405)
+
+    try:
+        data = JSONParser().parse(request)
+        student_id = data.get("student_id")
+        subject_id = data.get("subject_id")
+        date = data.get("date")
+        status = data.get("status")  # Present, Absent, Late
+
+        if not all([student_id, subject_id, date, status]):
+            return JsonResponse({"error": "All fields are required"}, status=400)
+
+        student = Student.objects.get(pk=student_id)
+        subject = Subject.objects.get(pk=subject_id)
+
+        attendance, created = Attendance.objects.update_or_create(
+            student=student,
+            subject=subject,
+            date=date,
+            defaults={"status": status}
+        )
+
+        return JsonResponse({
+            "message": "Attendance marked successfully",
+            "attendance_id": attendance.attendance_id,
+            "status": attendance.status,
+            "date": attendance.date.strftime("%Y-%m-%d"),
+        }, status=201)
+
+    except Student.DoesNotExist:
+        return JsonResponse({"error": "Student not found"}, status=404)
+    except Subject.DoesNotExist:
+        return JsonResponse({"error": "Subject not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+def update_attendance(request, attendance_id):
+    if request.method != "PUT":
+        return JsonResponse({"error": "Invalid request method"}, status=405)
+
+    try:
+        data = JSONParser().parse(request)
+        status = data.get("status")
+
+        if not status:
+            return JsonResponse({"error": "Status field is required"}, status=400)
+
+        attendance = Attendance.objects.get(pk=attendance_id)
+        attendance.status = status
+        attendance.save()
+
+        return JsonResponse({"message": "Attendance updated successfully"}, status=200)
+
+    except Attendance.DoesNotExist:
+        return JsonResponse({"error": "Attendance record not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+def get_attendance_by_student(request, student_id):
+    try:
+        student = get_object_or_404(Student, pk=student_id)
+        attendance_records = Attendance.objects.filter(student=student).select_related("subject")
+
+        attendance_data = [
+            {
+                "attendance_id": record.attendance_id,
+                "subject_name": record.subject.subject_name,
+                "subject_code": record.subject.subject_code,
+                "date": record.date.strftime("%Y-%m-%d"),
+                "status": record.status,
+            }
+            for record in attendance_records
+        ]
+
+        return JsonResponse({
+            "student_id": student_id,
+            "student_name": f"{student.first_name} {student.last_name}",
+            "attendance": attendance_data,
+        })
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)  # ✅ Fixed
+
+def get_attendance_by_subject(request, subject_id):
+    try:
+        subject = get_object_or_404(Subject, pk=subject_id)
+        attendance_records = Attendance.objects.filter(subject=subject).select_related("student")
+
+        attendance_data = [
+            {
+                "attendance_id": record.attendance_id,
+                "student_id": record.student.student_id,
+                "student_name": f"{record.student.first_name} {record.student.last_name}",
+                "date": record.date.strftime("%Y-%m-%d"),
+                "status": record.status,
+            }
+            for record in attendance_records
+        ]
+
+        return JsonResponse({
+            "subject_id": subject_id,
+            "subject_name": subject.subject_name,
+            "attendance": attendance_data,
+        })
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)  # ✅ Fixed
+
+@csrf_exempt
+def get_attendance_summary(request, student_id):
+    try:
+        student = get_object_or_404(Student, pk=student_id)
+        attendance_records = Attendance.objects.filter(student=student)
+
+        total_classes = attendance_records.count()
+        present_classes = attendance_records.filter(status="Present").count()
+        absent_classes = attendance_records.filter(status="Absent").count()
+        late_classes = attendance_records.filter(status="Late").count()
+
+        attendance_percentage = (
+            (present_classes / total_classes) * 100 if total_classes > 0 else 0
+        )
+
+        return JsonResponse({
+            "student_id": student_id,
+            "student_name": f"{student.first_name} {student.last_name}",
+            "total_classes": total_classes,
+            "present_classes": present_classes,
+            "absent_classes": absent_classes,
+            "late_classes": late_classes,
+            "attendance_percentage": round(attendance_percentage, 2),
+        })
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)  # ✅ Fixed
+    
+def get_attendance_by_course(request, course_id):
+    try:
+        course = get_object_or_404(Course, pk=course_id)
+        subjects = Subject.objects.filter(course=course)
+        attendance_records = Attendance.objects.filter(subject__in=subjects).select_related("student", "subject")
+
+        attendance_data = [
+            {
+                "attendance_id": record.attendance_id,
+                "student_id": record.student.student_id,
+                "student_name": f"{record.student.first_name} {record.student.last_name}",
+                "subject_name": record.subject.subject_name,
+                "date": record.date.strftime("%Y-%m-%d"),
+                "status": record.status,
+            }
+            for record in attendance_records
+        ]
+
+        return JsonResponse({
+            "course_id": course_id,
+            "course_name": course.course_name,
+            "attendance": attendance_data,
+        })
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

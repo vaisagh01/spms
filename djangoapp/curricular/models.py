@@ -136,15 +136,6 @@ class Alumni(User):
         verbose_name = "Alumni"
         verbose_name_plural = "Alumni"
 
-class Attendance(models.Model):
-    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="attendance_records")
-    date = models.DateField(default=now)
-    status = models.CharField(max_length=10, choices=[("Present", "Present"), ("Absent", "Absent")], default="Present")
-
-    def __str__(self):
-        return f"{self.student.username} - {self.date} - {self.status}"
-
-
 class Teacher(models.Model):
     base_role = User.Role.TEACHER
     teacher_id = models.AutoField(primary_key=True)
@@ -162,6 +153,22 @@ class Teacher(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.designation}"
+class Attendance(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="attendance_records")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True,default=1) 
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name="marked_attendance",default=1)  # Teacher marking attendance
+    date = models.DateField(default=now)
+    
+    HOUR_CHOICES = [
+        (1, "9-10"), (2, "10-11"), (3, "11-12"),
+        (4, "12-1"), (5, "2-3"), (6, "3-4"), (7, "4-5")
+    ]
+    hour = models.IntegerField(choices=HOUR_CHOICES,null=True, blank=True,default=1)
+    
+    status = models.CharField(max_length=10, choices=[("Present", "Present"), ("Absent", "Absent")], default="Present")
+
+    def __str__(self):
+        return f"{self.student.username} - {self.course} - {self.date} - {self.get_hour_display()} - {self.status} ({self.teacher.username})"
 
 class Subject(models.Model):
     subject_id = models.AutoField(primary_key=True)
