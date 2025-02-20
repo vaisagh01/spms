@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Teacher, Student, Assignment, Subject, Assessment, Course, AssignmentSubmission, Topic, Chapter, StudentMarks, User
+from .models import Attendance, Teacher, Student, Assignment, Subject, Assessment, Course, AssignmentSubmission, Topic, Chapter, StudentMarks, User
 
 # Register your models here.
 class TeacherAdmin(admin.ModelAdmin):
@@ -16,4 +16,4 @@ admin.site.register(Topic)  # ✅ Register Topics
 admin.site.register(Chapter)  # ✅ Register Topics
 admin.site.register(StudentMarks)  # ✅ Register Topics
 admin.site.register(User)  # ✅ Register Topics
-
+admin.site.register(Attendance)

@@ -1,7 +1,11 @@
+import os
+from tkinter import Image
+from django.forms import ValidationError
 from django.utils import timezone  
 from django.conf import settings
 from django.db import models
 from curricular.models import Student  # Replace 'yourapp' with the actual app name where the Student model is defined
+from PIL import Image
 
 # Create your models here.
 class Club(models.Model):
@@ -9,17 +13,41 @@ class Club(models.Model):
     club_name = models.CharField(max_length=255, unique=True)
     club_category = models.CharField(max_length=255)
     club_description = models.TextField(blank=True, null=True)
-    faculty_incharge = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="clubs_incharge")
+    faculty_incharge = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name="clubs_incharge"
+    )
     created_date = models.DateField(auto_now_add=True)
     leader = models.ForeignKey(Student, on_delete=models.CASCADE)
-    
+    club_logo = models.ImageField(upload_to='club_logos/', blank=True, null=True)
+
     def __str__(self):
         return self.club_name
 
+    def clean(self):
+        if self.club_logo:
+            ext = os.path.splitext(self.club_logo.name)[1].lower()
+            if ext != '.png':
+                raise ValidationError("Only PNG images are allowed for club logos.")
+            try:
+                img = Image.open(self.club_logo)
+                if img.format != 'PNG':
+                    raise ValidationError("Uploaded image must be a PNG file.")
+            except Exception as e:
+                raise ValidationError(f"Invalid image: {e}")
+
     def save(self, *args, **kwargs):
+        self.full_clean()  # Ensure image validation before saving
         super().save(*args, **kwargs)
         if self.leader:
-            ClubMembers.objects.get_or_create(student=self.leader, club=self, defaults={"role_in_club": "Leader"})
+            ClubMembers.objects.get_or_create(
+                student=self.leader, 
+                club=self, 
+                defaults={"role_in_club": "Leader"}
+            )
 
 class ClubMembers(models.Model):
     member_id = models.AutoField(primary_key=True)
