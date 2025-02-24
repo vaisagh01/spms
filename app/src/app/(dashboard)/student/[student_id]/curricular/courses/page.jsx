@@ -94,7 +94,7 @@ const Page = () => {
         </div>
 
         {/* Display Filtered Subjects */}
-        <div className='grid gap-4 md:grid-cols-4 lg:grid-cols-4'>
+        <div className='grid gap-4 md:grid-cols-3 lg:grid-cols-3'>
           {filteredSubjects.map((item, index) => (
             <div 
               key={index} 

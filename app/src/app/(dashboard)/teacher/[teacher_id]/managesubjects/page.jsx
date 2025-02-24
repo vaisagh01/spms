@@ -32,7 +32,8 @@ const Page = () => {
 
     fetchSubjects();
   }, [teacher_id]);
-
+  // console.log(subjects);
+  
   const handleSubjectClick = (subject) => {
     setSelectedSubject(subject);
     setIsDialogOpen(true);
@@ -48,19 +49,18 @@ const Page = () => {
       is_completed: e.target.checked, // Toggle completion status
     }));
   };
-  console.log(selectedSubject);
   
   const handleSaveTopic = async () => {
     if (!editTopic || !selectedSubject) return;
-
+    
     try {
-      await axios.post(`${API_BASE_URL}/subjects/${selectedSubject.subject_id}/edit_topic/`, {
+      await axios.post(`http://127.0.0.1:8000/curricular/subjects/${selectedSubject.subject_id}/edit/`, {
         topic_id: editTopic.topic_id,
         topic_name: editTopic.topic_name,
         is_completed: editTopic.is_completed,
-        completion_time: editTopic.completion_time,
+        // completion_time: editTopic.completion_time,
       });
-
+      
       setSubjects((prev) =>
         prev.map((subject) =>
           subject.subject_id === selectedSubject.subject_id
@@ -84,15 +84,21 @@ const Page = () => {
       <h1 className="text-2xl font-bold mb-4">Manage Subjects</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {subjects.length > 0 ? (
-          subjects.map((subject) => (
-            <Card key={subject.subject_id} onClick={() => handleSubjectClick(subject)} className="cursor-pointer">
-              <CardHeader>
-                <CardTitle>{subject.subject_name}</CardTitle>
-                <p>Code: {subject.subject_code}</p>
-                <p>Semester: {subject.semester}</p>
-              </CardHeader>
-            </Card>
-          ))
+          subjects.map((subject) => {
+            const allTopicsCompleted = subject.topics?.length > 0 && subject.topics.every(topic => topic.is_completed);
+
+            return (
+              <Card key={subject.subject_id} onClick={() => handleSubjectClick(subject)} className="cursor-pointer hover:bg-gray-50">
+                <CardHeader>
+                  <CardTitle className="w-full flex items-center justify-between">
+                    <p className="text-lg">{subject.subject_name}</p>  {allTopicsCompleted && "✅"}
+                  </CardTitle>
+                  <p className="text-gray-500">Code: {subject.subject_code}</p>
+                  <p className="text-gray-500">Semester: {subject.semester}</p>
+                </CardHeader>
+              </Card>
+            );
+          })
         ) : (
           <p>No subjects available</p>
         )}

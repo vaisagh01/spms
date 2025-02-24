@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import {
   Card,
@@ -13,6 +12,7 @@ import axios from "axios";
 import EventsPerMonth from "../components/EventsPerMonth";
 import AllClubs from "../components/AllClubs";
 import { useParams } from "next/navigation";
+import EventTable from "../components/AllEvents";
 
 const Page = () => {
   const { user } = useUser();
@@ -115,10 +115,10 @@ const Page = () => {
           <div className="col-span-4 md:col-span-3">
             <AllClubs />
           </div>
-          <div className="col-span-4 md:col-span-3">
-            <Notifications />
+          <div className="col-span-5 md:col-span-4">
+            <EventTable />
           </div>
-          <div className="col-span-4 md:col-span-3">
+          <div className="col-span-2 md:col-span-2">
             <Notifications />
           </div>
         </div>

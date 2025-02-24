@@ -8,7 +8,7 @@ import {Card,
 import { Button } from '@/components/ui/button'
 const MySubjectCard = ({data}) => {
   return (
-    <Card className="hover:bg-slate-100">
+    <Card className="hover:bg-slate-50">
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
             <CardTitle className='text-xl font-bold flex justify-between w-full'>
               <p>{data?.subject_name}</p>

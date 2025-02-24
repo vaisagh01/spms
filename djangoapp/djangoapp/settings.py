@@ -9,7 +9,10 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
+import os
 from django.urls import reverse_lazy
+from django.conf import settings
+from django.conf.urls.static import static
 
 from pathlib import Path
 from corsheaders.middleware import CorsMiddleware
@@ -28,7 +31,7 @@ SECRET_KEY = 'django-insecure-k&t_y-i2gc)07j9^w$f96k(yg-8v1$9@#y1t@tl!0w3n5klxbt
 DEBUG = True
 
 ALLOWED_HOSTS = []
- 
+
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Replace with your React app's URL
@@ -48,12 +51,11 @@ INSTALLED_APPS = [
     'curricular',
     'rest_framework_simplejwt',
     'extracurricular',
+    'notifications',
     'corsheaders',
     'djangoapp',
-    # 'api',
-    'alumni'
-    
-    
+    'alumni',
+    'noti'
 ]
 
 MIDDLEWARE = [
@@ -89,6 +91,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'djangoapp.wsgi.application'
 
+PUSHER_APP_ID = "1946154"
+PUSHER_KEY = "d35d4c488b32e53913fd"
+PUSHER_SECRET = "fb7aef8774c48414ad22"
+PUSHER_CLUSTER = "ap2"
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -159,3 +165,6 @@ AUTH_USER_MODEL = 'curricular.User'
 CORS_ALLOW_ALL_ORIGINS = True
 
 LOGIN_REDIRECT_URL = reverse_lazy("admin_dashboard") 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+

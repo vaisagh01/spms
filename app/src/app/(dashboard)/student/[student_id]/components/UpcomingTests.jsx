@@ -1,7 +1,7 @@
+"use client"
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useParams } from "next/navigation";
 
@@ -44,7 +44,7 @@ function UpcomingTests() {
       <CardHeader>
         <CardTitle className="flex justify-between">
           Upcoming Tests
-          <Button>View All Tests</Button>
+          {/* <Button>View All Tests</Button> */}
         </CardTitle>
         <CardDescription>You have {upcomingAssessments.length} upcoming tests</CardDescription>
       </CardHeader>

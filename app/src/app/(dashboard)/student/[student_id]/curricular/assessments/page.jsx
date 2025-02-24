@@ -36,7 +36,7 @@ const Page = () => {
           <div className='mt-2 cursor-pointer' onClick={() => router.back()}>
             <ArrowLeft />
           </div>
-          <h2 className='text-4xl font-bold tracking-tight'>Assignments</h2>
+          <h2 className='text-4xl font-bold tracking-tight'>Assessments</h2>
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-6 lg:grid-cols-6">

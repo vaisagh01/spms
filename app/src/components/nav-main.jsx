@@ -30,7 +30,7 @@ export function NavMain({items}) {
             <SidebarMenuItem key={index}>
               <SidebarMenuButton asChild isActive={item.url}>
                   <Link href={"/" + item.url}>
-                    <Home />
+                    {<item.icon />}
                     <span>{item.title}</span>
                   </Link>
                   </SidebarMenuButton>

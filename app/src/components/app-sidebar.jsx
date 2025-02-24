@@ -1,8 +1,5 @@
-"use client"
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -12,8 +9,10 @@ import {
 } from "@/components/ui/sidebar"
 
 export function AppSidebar({data, ...props}) {
+
   return (
     (<Sidebar collapsible="icon" {...props}>
+      <SidebarHeader></SidebarHeader>
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>

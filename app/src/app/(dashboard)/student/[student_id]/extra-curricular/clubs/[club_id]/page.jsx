@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useRouter } from "next/router";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,14 +9,19 @@ import { useParams } from "next/navigation";
 import { Dialog, DialogTrigger,DialogHeader, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DataTable } from "../../events/data-table";
-import ClubsPage from "../page";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 const ClubProfile = () => {
   const [club, setClub] = useState(null);
   const [isLeader, setIsLeader] = useState(false);
   const [newMember, setNewMember] = useState({ username: "", role: "Member" });
   const [newEvent, setNewEvent] = useState({ event_name: "", event_date: "" });
+  const [newParticipant, setNewParticipant] = useState({ club_member: "", role_in_event: "", achievement: "" });
+  const [clubMembers, setClubMembers] = useState([]);
+  const [selectedEventId, setSelectedEventId] = useState(null);
+  const [deleteEventId, setDeleteEventId] = useState(null);
+  const [deleteMemberId, setDeleteMemberId] = useState(null);
+
   const params = useParams();
 
   useEffect(() => {
@@ -81,7 +85,7 @@ const ClubProfile = () => {
     }
 
     try {
-        await axios.delete(`http://localhost:8000/api/extracurricular/${params.club_id}/delete_member/`, {
+        await axios.delete(`http://localhost:8000/extracurricular/clubs/${params.club_id}/delete_member/`, {
             data: { member_id },
             headers: { "Content-Type": "application/json" }
         });
@@ -107,7 +111,7 @@ const ClubProfile = () => {
         console.error("Error deleting event:", error);
       }
     };
-    console.log(club);
+    // console.log(club);
     
   const handleAddEvent = async () => {
     try {
@@ -124,25 +128,67 @@ const ClubProfile = () => {
       console.error("Error adding event:", error.response ? error.response.data : error);
     }
   };
-  if (!club) return <div>Loading...</div>;
+  const handleAddParticipant = async (event_id,club_member_id) => {
+    try {
+      await axios.post(`http://localhost:8000/extracurricular/event/add_participant/`, {
+        club_member: club_member_id,
+        role_in_event: newParticipant.role_in_event,
+        achievement: newParticipant.achievement,
+        event_id: event_id
+      });
 
+      setClub((prevClub) => ({
+        ...prevClub,
+        events: prevClub.events.map(event => 
+          event.event_id === selectedEventId 
+            ? { ...event, participants: [...event.participants, newParticipant] } 
+            : event
+        )
+      }));
+
+      setNewParticipant({ club_member_id: "", role_in_event: "", achievement: "" });
+    } catch (error) {
+      console.error("Error adding participant:", error);
+    }
+  };
+  if (!club) return <div>Loading...</div>;
+  console.log(club);
+  const confirmDeleteMember = async () => {
+    try {
+      await axios.delete(`http://localhost:8000/extracurricular/clubs/${params.club_id}/delete_member/`, {
+        data: { member_id: deleteMemberId },
+      });
+      setClub((prevClub) => ({
+        ...prevClub,
+        members: prevClub.members.filter(member => member.member_id !== deleteMemberId),
+      }));
+      toast.success("Member deleted successfully");
+    } catch (error) {
+      console.error("Error deleting member:", error);
+      toast.error("Failed to delete member");
+    }
+    setDeleteMemberId(null);
+  };
+
+
+  
   return (
     <div className="p-4">
       <Card>
         <CardHeader>
           <div className="flex items-center space-x-4">
             <Avatar>
-              <AvatarImage src="/path/to/default-avatar.jpg" alt={club.club_name} />
+              <AvatarImage src={club.club_logo} alt={club.club_name} />
               <AvatarFallback>{club.club_name[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-2xl font-bold">{club.club_name}</CardTitle>
+              <CardTitle className="text-4xl font-bold">{club.club_name}</CardTitle>
               <CardDescription className="text-sm">{club.club_category}</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-lg">{club.description || "No description available"}</p>
+          <p className="text-lg text-gray-500">{club.description || "No description available"}</p>
           <p className="mt-4 text-md">Faculty In Charge: {club?.faculty_incharge || "N/A"}</p>
           <p className="text-md">Leader: {club.leader || "N/A"}</p>
 
@@ -250,24 +296,56 @@ const ClubProfile = () => {
                       <TableRow key={index}>
                         <TableCell>{event.event_name}</TableCell>
                         <TableCell>{event.event_date}</TableCell>
-                        <TableCell>
+                        {
+                          isLeader && (
+                            
+                            <TableCell>
+                              {event.participants?.map((item, idx) => (
+                                <div key={idx}>{item.name}</div>
+                              ))}
                         <Dialog>
-                          <DialogTrigger>View Participants</DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Participants of {event.event_name}</DialogTitle>
-                            </DialogHeader>
+                            <DialogTrigger>View/Add Participants</DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Participants of {event.event_name}</DialogTitle>
+                              </DialogHeader>
+                              {isLeader && (
+                                <>
+                                  <Label htmlFor="club_member_id">Select Club Member</Label>
+                                  <Select onValueChange={(value) => setNewParticipant({ ...newParticipant, event_id:event.event_id, club_member: value })}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select a member" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {club.members.map((member,index)=> (
+                                        <SelectItem key={index} value={member.club_member_id}>
+                                          {member.name}
+                                        </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                      <Label htmlFor="role_in_event">Role</Label>
+                                      <Input
+                                        id="role_in_event"
+                                        value={newParticipant.role_in_event}
+                                        onChange={(e) => setNewParticipant({ ...newParticipant, role_in_event: e.target.value })}
+                                      />
+                                      <Label htmlFor="achievement">Achievement</Label>
+                                      <Input
+                                        id="achievement"
+                                        value={newParticipant.achievement}
+                                        onChange={(e) => setNewParticipant({ ...newParticipant, achievement: e.target.value })}
+                                      />
+                                      <Button onClick={() => { setSelectedEventId(event.event_id); handleAddParticipant(); }}>Add Participant</Button>
+                                    </>
+                                  )}
+                                </DialogContent>
+                              </Dialog>
+                            </TableCell>
+                                      )
+                                    }
 
                             {
-                              event?.participants.map((item,index) => (
-                                <div key={index}>{index+1} -  {item.participant_name}</div>
-                              ))
-                            }
-                          </DialogContent>
-                        </Dialog>
-                        </TableCell>
-
-                        {
                           isLeader && (
                             <TableCell>
                               <Button variant="destructive" onClick={() => handleDeleteEvent(event.event_id)}>Delete</Button>

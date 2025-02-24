@@ -1,4 +1,5 @@
-"use client"
+"use client";
+import { Toaster } from "@/components/ui/toaster" 
 import {
   Sheet,
   SheetContent,
@@ -6,7 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
+} from "@/components/ui/sheet";
 import "./globals.css";
 import { UserProvider } from "./context/UserContext";
 import { Poppins, Raleway } from "next/font/google";
@@ -14,11 +15,25 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import NProgress from "nprogress";
 import "nprogress/nprogress.css"; // Import NProgress styles
-const poppins = Poppins({weight: '400', subsets: ['latin'] })
+import Router from "next/router";
+Router.onRouterChangeStart = () => {
+  console.log("starting");
+  
+}
+
+const poppins = Poppins({ weight: "400", subsets: ["latin"] });
 
 export default function RootLayout({ children }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Check if user exists in localStorage
+    const user = localStorage.getItem("user");
+    if (!user) {
+      router.push("/auth/login"); // Redirect to login if no user is found
+    }
+  }, [router]);
 
   useEffect(() => {
     const handleStart = () => {
@@ -54,15 +69,17 @@ export default function RootLayout({ children }) {
           <Sheet>
             <SheetTrigger>Open</SheetTrigger>
             <SheetContent>
+              <SheetTitle>Noti</SheetTitle>
               <SheetHeader>
                 <SheetTitle>Are you absolutely sure?</SheetTitle>
                 <SheetDescription>
-                  This action cannot be undone. This will permanently delete your account
-                  and remove your data from our servers.
+                  This action cannot be undone. This will permanently delete your
+                  account and remove your data from our servers.
                 </SheetDescription>
               </SheetHeader>
             </SheetContent>
           </Sheet>
+          <Toaster />
         </body>
       </UserProvider>
     </html>

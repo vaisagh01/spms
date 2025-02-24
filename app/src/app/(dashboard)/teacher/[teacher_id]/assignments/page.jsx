@@ -10,6 +10,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import useNotifications from "../notifications/sendNoti";
 
 const API_BASE_URL = "http://127.0.0.1:8000/curricular";
 
@@ -20,10 +22,14 @@ const AssignmentsPage = () => {
   const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [editAssignment, setEditAssignment] = useState(null);
-  const [newAssignment, setNewAssignment] = useState({ title: "", description: "", due_date: "", due_time: "", max_marks: "", subject_id: "" });
+  const [newAssignment, setNewAssignment] = useState({courseId:",", title: "", description: "", due_date: "", due_time: "", max_marks: "", subject_id: "" });
   const [isPosting, setIsPosting] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [submissions, setSubmissions] = useState([]);
+  const [editSubmission, setEditSubmission] = useState(null);
+  const { sendNotification } = useNotifications();
+
+  
   useEffect(() => {
     if (!teacher_id) return;
 
@@ -38,6 +44,7 @@ const AssignmentsPage = () => {
 
     fetchSubjects();
   }, [teacher_id]);
+  
 
   useEffect(() => {
     if (!teacher_id) return;
@@ -45,9 +52,6 @@ const AssignmentsPage = () => {
     const fetchAssignments = async () => {
       try {
         let url = `${API_BASE_URL}/assignments/teacher/${teacher_id}/`;
-        if (selectedSubject) {
-          url += `?subject_id=${selectedSubject}`;
-        }
 
         const response = await axios.get(url);
         setAssignments(response.data.assignments || []);
@@ -58,27 +62,37 @@ const AssignmentsPage = () => {
 
     fetchAssignments();
   }, [teacher_id, selectedSubject]);
+  
 
   const handlePostAssignment = async () => {
     setIsPosting(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}/assignments/post/${teacher_id}/`, newAssignment);
-      
-      const newAssignmentData = {
-        ...newAssignment,
-        assignment_id: response.data.assignment_id,
-        subject__subject_name: subjects.find(s => s.subject_id.toString() === newAssignment.subject_id)?.subject_name || "Unknown",
-      };
-  
-      setAssignments(prevAssignments => [newAssignmentData, ...prevAssignments]);
-      setNewAssignment({ subject_id: "", title: "", description: "", due_date: "", due_time: "", max_marks: "" });
-  
-      toast({ title: "Success", description: "Assignment posted successfully!", variant: "default" });
-    } catch (error) {
-      console.error("Error posting assignment:", error);
-      toast({ title: "Error", description: "Failed to post assignment", variant: "destructive" });
-    }
-    setIsPosting(false);
+        const response = await axios.post(`${API_BASE_URL}/assignments/post/${teacher_id}/`, newAssignment);
+        
+        const newAssignmentData = {
+            ...newAssignment,
+            assignment_id: response.data.assignment_id,
+            subject__subject_name: subjects.find(s => s.subject_id.toString() === newAssignment.subject_id)?.subject_name || "Unknown",
+        };
+
+        setAssignments(prevAssignments => [newAssignmentData, ...prevAssignments]);
+        setNewAssignment({ subject_id: "", title: "", description: "", due_date: "", due_time: "", max_marks: "" });
+
+        toast({ title: "Success", description: "Assignment posted successfully!" });
+
+        // Send a notification after posting the assignment
+        const user = JSON.parse(localStorage.getItem('user'))
+        await sendNotification(JSON.parse(user.courseId[0]), `New assignment posted: ${newAssignment.title}`);
+
+      } catch (error) {
+          console.error("Error posting assignment:", error);
+          toast({ title: "Error", description: "Failed to post assignment", variant: "destructive" });
+      }
+      setIsPosting(false);
+  };
+
+  const handleEditClick = (submission) => {
+    setEditSubmission({ ...submission }); // Clone the submission to edit
   };
   const handleUpdateAssignment = async () => {
     if (!editAssignment) return;
@@ -110,12 +124,30 @@ const AssignmentsPage = () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/assignments/${assignment_id}/submissions/`);
       setSubmissions(response.data.submissions || []);
-      setSelectedAssignment(assignment_id);
+      setSelectedAssignment(assignments.find(a => a.assignment_id === assignment_id));
     } catch (error) {
       console.error("Error fetching submissions:", error);
       toast({ title: "Error", description: "Failed to fetch submissions", variant: "destructive" });
     }
   };
+  const handleUpdateSubmission = async () => {
+    if (!editSubmission) return;
+    
+    try {
+      await axios.put(`${API_BASE_URL}/submissions/update/${editSubmission.submission_id}/`, editSubmission);
+      setSubmissions(prev =>
+        prev.map(sub =>
+          sub.submission_id === editSubmission.submission_id ? editSubmission : sub
+        )
+      );
+      setEditSubmission(null);
+      toast({ title: "Updated", description: "Submission updated successfully!", variant: "default" });
+    } catch (error) {
+      console.error("Error updating submission:", error);
+      toast({ title: "Error", description: "Failed to update submission", variant: "destructive" });
+    }
+  };
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Manage Assignments</h1>
@@ -128,7 +160,7 @@ const AssignmentsPage = () => {
           <DialogHeader>
             <DialogTitle>Post New Assignment</DialogTitle>
           </DialogHeader>
-          <Select value={newAssignment.subject_id} onValueChange={(val) => setNewAssignment({ ...newAssignment, subject_id: val })}>
+          <Select value={newAssignment.subject_id} onValueChange={(val) => setNewAssignment({ ...newAssignment, subject_id: val, courseId:subjects.course_id })}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select Subject" />
             </SelectTrigger>
@@ -156,15 +188,15 @@ const AssignmentsPage = () => {
           assignments.map((assignment) => (
             <Card 
             key={assignment.assignment_id} 
-            className="relative p-4" onClick={() => handleViewSubmissions(assignment.assignment_id)}
+            className="relative p-4"
             >
               <CardHeader>
-                <CardTitle>{assignment.title}</CardTitle>
+                <CardTitle className="text-xl">{assignment.title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-500">Subject: {assignment.subject__subject_name}</p>
-                <p className="text-sm text-gray-500">Due: {assignment.due_date} at {assignment.due_time}</p>
-                <p className="text-sm text-gray-500">Max Marks: {assignment.max_marks}</p>
+                <p className="text-md text-gray-500">Subject: {assignment.subject__subject_name}</p>
+                <p className="text-md text-gray-500">Due: {assignment.due_date} at {assignment.due_time}</p>
+                <p className="text-md text-gray-500">Max Marks: {assignment.max_marks}</p>
                 <p className="mt-2">{assignment.description}</p>
 
                 {editAssignment && (
@@ -182,6 +214,7 @@ const AssignmentsPage = () => {
                     </DialogContent>
                   </Dialog>
                 )}
+                <Button className="mr-4" onClick={() => handleViewSubmissions(assignment.assignment_id)}>View</Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button className="mt-4" variant="destructive">Delete</Button>
@@ -196,6 +229,7 @@ const AssignmentsPage = () => {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
+                
               </CardContent>
             </Card>
           ))
@@ -208,14 +242,65 @@ const AssignmentsPage = () => {
             <DialogHeader>
               <DialogTitle>Submissions for Assignment</DialogTitle>
             </DialogHeader>
+
             {submissions.length > 0 ? (
-              <ul>
-                {submissions.map((submission) => (
-                  <li key={submission.submission_id} className="p-2 border-b">
-                    {submission.student_name} - {submission.submission_date}
-                  </li>
-                ))}
-              </ul>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Student</TableHead>
+                    <TableHead>Submission Date</TableHead>
+                    <TableHead>Marks</TableHead>
+                    <TableHead>Feedback</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {submissions.map((submission) => (
+                    <TableRow key={submission.submission_id}>
+                      <TableCell>{submission.student_name}</TableCell>
+                      <TableCell>{submission.submission_date}</TableCell>
+
+                      {/* Show marks as text unless editing */}
+                      <TableCell>
+                        {editSubmission?.submission_id === submission.submission_id ? (
+                          <Input
+                            type="number"
+                            value={editSubmission.marks_obtained}
+                            onChange={(e) =>
+                              setEditSubmission({ ...editSubmission, marks_obtained: e.target.value })
+                            }
+                          />
+                        ) : (
+                          submission.marks_obtained || "Not graded"
+                        )}
+                      </TableCell>
+
+                      {/* Show feedback as text unless editing */}
+                      <TableCell>
+                        {editSubmission?.submission_id === submission.submission_id ? (
+                          <Input
+                            type="text"
+                            value={editSubmission.feedback}
+                            onChange={(e) =>
+                              setEditSubmission({ ...editSubmission, feedback: e.target.value })
+                            }
+                          />
+                        ) : (
+                          submission.feedback || "No feedback"
+                        )}
+                      </TableCell>
+
+                      <TableCell>
+                        {editSubmission?.submission_id === submission.submission_id ? (
+                          <Button onClick={handleUpdateSubmission}>Save</Button>
+                        ) : (
+                          <Button onClick={() => handleEditClick(submission)}>Edit</Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             ) : (
               <p>No submissions found</p>
             )}

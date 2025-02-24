@@ -36,7 +36,7 @@ function StudentClubs() {
     <Card>
       <CardHeader>
         <CardTitle>Clubs & Events</CardTitle>
-        <CardDescription>View the clubs and events the student is part of.</CardDescription>
+        <CardDescription>View the clubs and events you are part of.</CardDescription>
       </CardHeader>
       <CardContent className="min-h-[335px]">
         {/* Sorting */}
@@ -57,10 +57,8 @@ function StudentClubs() {
           <table className="min-w-full table-auto">
             <thead className="bg-gray-100">
               <tr>
-                <th className="px-4 py-2">Club Name</th>
-                {/* <th className="px-4 py-2">Category</th> */}
-                {/* <th className="px-4 py-2">Description</th> */}
-                <th className="px-4 py-2">Latest Event</th>
+                <th className="px-4 text-start py-2">Club</th>
+                <th className="px-4 text-start py-2">Event</th>
               </tr>
             </thead>
             <tbody>

@@ -2,32 +2,39 @@
 import { GraduationCap, Trophy, Code, Home } from "lucide-react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { useUser } from "@/app/context/UserContext";
 import Header from "@/components/Header";
 import "../../../globals.css";
+import { useParams } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function StudentLayout({ children }) {
-  const student_id = 1// Get student_id from route params
-  const { user } = useUser();
-
+  const params = useParams();
+  const student_id = params.student_id// Get student_id from route params
+  const [user,setUser] = useState({name:"vaisagh",email:"student01@gmail.com"})
   // Function to dynamically update URLs
   const updateUrls = (navData) => {
     return navData.map((item) => ({
       ...item,
-      url: item.url ? item.url.replace("student/2", `teacher/${student_id}`) : item.url, // Update top-level URL
+      url: item.url ? item.url.replace("student/2", `student/${student_id}`) : item.url, // Update top-level URL
       items: item.items?.map((subItem) => ({
         ...subItem,
-        url: subItem.url.replace("student/2", `teacher/${student_id}`), // Update nested URLs
+        url: subItem.url.replace("student/2", `student/${student_id}`), // Update nested URLs
       })),
     }));
   };
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
   // Define sidebar data dynamically
   const data = {
     user: {
-      name: "Student",
-      email: "m@example.com",
-      avatar: "/avatars/shadcn.jpg",
+      name: `${user.name}`,
+      email: `${user.email}`,
+      avatar: "",
     },
     home: [
       {
@@ -58,7 +65,7 @@ export default function StudentLayout({ children }) {
           { title: "Clubs home", url: "student/2/extra-curricular" },
           { title: "Clubs", url: "student/2/extra-curricular/clubs" },
           { title: "Events", url: "student/2/extra-curricular/events" },
-          { title: "Achievements", url: "student/2/extra-curricular/achievements" },
+          // { title: "Achievements", url: "student/2/extra-curricular/achievements" },
         ],
       },
       {
@@ -73,6 +80,12 @@ export default function StudentLayout({ children }) {
       },
     ]),
   };
+  useEffect(() => {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    }, []);
 
   return (
     <div>

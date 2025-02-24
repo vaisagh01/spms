@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ClubMembersViewSet, ClubViewSet, EventViewSet, delete_event_view, delete_member_view, get_club_profile, get_events_by_student, add_event_view, add_member_view, get_student_clubs, get_student_event_participations
+from .views import add_participant, get_events, ClubMembersViewSet, ClubViewSet, EventViewSet, delete_event_view, delete_member_view, get_club_profile, get_events_by_student, add_event_view, add_member_view, get_student_clubs, get_student_event_participations
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
@@ -10,6 +10,9 @@ router.register(r'events', EventViewSet, basename='event')
 
 urlpatterns = [
     path('clubs/<int:club_id>/profile/', get_club_profile, name='club_profile'),
+    path("events/", get_events, name="get_all_events"),
+    path("event/add_participant/", add_participant, name="add_participant"),
+
     path('add_member/<int:club_id>/', add_member_view, name='add_member'),
     path('add_event/<int:club_id>/', add_event_view, name='add_event'),
     path('clubs/<int:club_id>/delete_event/', delete_event_view, name='delete_event'),

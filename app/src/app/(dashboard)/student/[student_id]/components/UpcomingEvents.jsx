@@ -3,8 +3,6 @@ import {Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/comp
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 const UpcomingEvents = () => {
   const axios = require('axios');  // Only needed if you're using Node.js
-
-  
   return (
     <Card>
       <CardHeader>

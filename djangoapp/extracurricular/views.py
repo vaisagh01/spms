@@ -141,6 +141,13 @@ def get_clubs(request):
     clubs_data = [{"club_name": club.club_name, "club_category": club.club_category} for club in clubs]
     return JsonResponse({"clubs": clubs_data}, safe=False)
 
+def get_events(request):
+    if request.method == "GET":
+        events = Event.objects.all().values(
+            "event_id", "event_name", "description", "event_date", 
+            "club__club_name", "club__club_id"  # Added club_id
+        )
+        return JsonResponse({"events": list(events)}, safe=False)
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])  
@@ -230,6 +237,7 @@ def get_club_profile(request, club_id):
         "description": club.club_description,  # Ensure this field exists in the model
         "members": members_data,
         "events": events_data,
+        # "club_logo":club.club_logo
     }
 
     return JsonResponse({"club_profile": club_data}, safe=False)
@@ -403,6 +411,39 @@ def get_student_event_participations(request, student_id):
 
     # Return the event details as JSON response
     return JsonResponse({'events': event_details})
+@csrf_exempt
+def add_participant(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            club_member_id = data.get("club_member_id")
+            role_in_event = data.get("role_in_event", "")
+            achievement = data.get("achievement", "")
+            event_id = data.get("event_id")
+
+            event = get_object_or_404(Event, id=event_id)
+            club_member = get_object_or_404(ClubMembers, id=club_member_id)
+
+            # Check if the participant already exists
+            if EventParticipation.objects.filter(event=event, club_member=club_member).exists():
+                return JsonResponse({"error": "Participant already added to this event."}, status=400)
+
+            participation = EventParticipation.objects.create(
+                event=event,
+                club_member=club_member,
+                role_in_event=role_in_event,
+                achievement=achievement,
+            )
+
+            return JsonResponse({"message": "Participant added successfully.", "participation_id": participation.participation_id}, status=201)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON data."}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+    return JsonResponse({"error": "Invalid request method."}, status=405)
+
+
 def get_student_clubs(request, student_id):
     try:
         # Fetch all ClubMembers for the given student_id

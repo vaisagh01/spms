@@ -201,23 +201,30 @@ class Chapter(models.Model):
     def __str__(self):
         return self.chapter_name
 
-from django.db import models
+class AssessmentType(models.TextChoices):
+    MID_SEMESTER = "Mid Semester", ("Mid Semester")
+    END_SEMESTER = "End Semester", ("End Semester")
+    LAB = "Lab", ("Lab")
+    OTHER = "Other", ("Other")
 
 class Assessment(models.Model):
     assessment_id = models.AutoField(primary_key=True)
     subject = models.ForeignKey("Subject", on_delete=models.CASCADE, related_name="assessments")
-    assessment_type = models.CharField(max_length=255)
+    assessment_type = models.CharField(
+        max_length=20,
+        choices=AssessmentType.choices,
+        default=AssessmentType.OTHER
+    )
     total_marks = models.IntegerField()
     date_conducted = models.DateField()
 
     def __str__(self):
         return f"{self.assessment_type} - {self.subject.subject_name}"
-
 class StudentMarks(models.Model):
     marks_id = models.AutoField(primary_key=True)
     assessment = models.ForeignKey(Assessment, on_delete=models.CASCADE, related_name="student_marks")
     student = models.ForeignKey("Student", on_delete=models.CASCADE, related_name="marks")
-    marks_obtained = models.IntegerField()
+    marks_obtained = models.IntegerField(null=True, blank=True)
     class Meta:
         unique_together = ("assessment", "student")  # Ensures one student has only one mark per assessment
 
@@ -243,6 +250,7 @@ class AssignmentSubmission(models.Model):
     submission_date = models.DateField()
     marks_obtained = models.IntegerField(null=True, blank=True)
     feedback = models.TextField(blank=True, null=True)
+    file = models.FileField(upload_to="submissions/",null=True, blank=True)
 
     def __str__(self):
         return f"{self.student.first_name} {self.student.last_name} - {self.assignment.title}"

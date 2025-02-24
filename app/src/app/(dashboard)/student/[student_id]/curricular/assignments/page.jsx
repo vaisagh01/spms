@@ -1,18 +1,19 @@
-"use client"
-import React, { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import MyAssignments from '@/components/MyAssignments';
-import axios from 'axios';
+"use client";
+
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import MyAssignments from "@/components/MyAssignments";
+import axios from "axios";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
-  SelectItem
-} from "@/components/ui/select"
+  SelectItem,
+} from "@/components/ui/select";
 
 const API_BASE_URL = "http://localhost:8000/curricular";
 
@@ -28,34 +29,36 @@ const Page = () => {
   const params = useParams();
   const router = useRouter();
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
+    setLoading(true);
     const id = params.student_id;
-
     if (!id) {
       setError("No student ID provided");
       setLoading(false);
       return;
     }
 
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/assignments/student/${id}/`);
-        const assignments = response.data.assignments.map(assignment => ({
-          ...assignment,
-          status: determineStatus(assignment)
-        }));
-        setData({ ...response.data, assignments });
-        setFilteredAssignments(assignments);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/assignments/student/${id}/`
+      );
+      const assignments = response.data.assignments.map((assignment) => ({
+        ...assignment,
+        status: determineStatus(assignment),
+      }));
+      setData({ ...response.data, assignments });
+      setFilteredAssignments(assignments);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   }, [params.student_id]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Function to determine assignment status
   const determineStatus = (assignment) => {
@@ -78,12 +81,14 @@ const Page = () => {
 
       // Filter by subject
       if (selectedSubject !== "all") {
-        filtered = filtered.filter(assignment => assignment.subject_code === selectedSubject);
+        filtered = filtered.filter(
+          (assignment) => assignment.subject_code === selectedSubject
+        );
       }
 
       // Filter by status
       if (selectedStatus !== "all") {
-        filtered = filtered.filter(assignment => assignment.status === selectedStatus);
+        filtered = filtered.filter((assignment) => assignment.status === selectedStatus);
       }
 
       // Sort by date
@@ -101,19 +106,19 @@ const Page = () => {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className='p-4'>
-      <div className='flex flex-1 flex-col space-y-2'>
+    <div className="p-4">
+      <div className="flex flex-1 flex-col space-y-2">
         {/* Page Header */}
-        <div className='flex items-center gap-7 space-y-2 my-4'>
-          <div className='mt-2 cursor-pointer' onClick={() => router.back()}>
+        <div className="flex items-center gap-7 space-y-2 my-4">
+          <div className="mt-2 cursor-pointer" onClick={() => router.back()}>
             <ArrowLeft />
           </div>
-          <h2 className='text-4xl font-bold tracking-tight'>Assignments</h2>
+          <h2 className="text-4xl font-bold tracking-tight">Assignments</h2>
         </div>
 
         {/* Filters */}
-        <div className='flex justify-between mx-6 items-center py-4'>
-          <div className='flex gap-2'>
+        <div className="flex justify-between mx-6 items-center py-4">
+          <div className="flex gap-2">
             {/* Subject Filter */}
             <Select onValueChange={setSelectedSubject} defaultValue="all">
               <SelectTrigger className="w-[180px]">
@@ -121,7 +126,9 @@ const Page = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Subjects</SelectItem>
-                {Array.from(new Set(data.assignments.map(a => a.subject_code))).map((subject, index) => (
+                {Array.from(
+                  new Set(data.assignments.map((a) => a.subject_code))
+                ).map((subject, index) => (
                   <SelectItem key={index} value={subject}>
                     {subject}
                   </SelectItem>
@@ -156,11 +163,15 @@ const Page = () => {
         </div>
 
         {/* Assignments Grid */}
-        <div className='grid mx-[3%] gap-4 md:grid-cols-1 lg:grid-cols-1'>
+        <div className="grid mx-[3%] gap-4 md:grid-cols-1 lg:grid-cols-1">
           {filteredAssignments.length > 0 ? (
             filteredAssignments.map((item, index) => (
               <Link key={index} href="#">
-                <MyAssignments data={item} />
+                <MyAssignments
+                  data={item}
+                  studentId={params.student_id}
+                  refreshData={fetchData} // <-- Pass refresh function
+                />
               </Link>
             ))
           ) : (
@@ -169,7 +180,7 @@ const Page = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default Page;
