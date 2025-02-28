@@ -84,6 +84,7 @@ export default function AssessmentsPage() {
       // await sendNotification(, `New assignment posted: ${newAssignment.title}`);
       setOpen(false);
       setNewAssessment({ subject_id: "", assessment_type: "", total_marks: "", date_conducted: "" });
+      await sendNotification(newAssessment.subject_id, `New assignment posted: ${newAssessment.title}`);
       fetchData(); // Refresh table after submission
     } catch (error) {
       console.error("Error submitting assessment:", error);

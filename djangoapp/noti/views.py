@@ -2,6 +2,8 @@ import pusher
 import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+
+from curricular.models import Subject
 from .models import Course, Noti
 
 # Initialize Pusher
@@ -18,22 +20,25 @@ def send_course_notification(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            course_id = data.get('course_id')
+            subject_id = data.get('subject_id')
             message = data.get('message', 'New notification!')
 
-            if not course_id:
-                return JsonResponse({'status': 'error', 'message': 'course_id is required'}, status=400)
+            if not subject_id:
+                return JsonResponse({'status': 'error', 'message': 'subject_id is required'}, status=400)
 
-            # Ensure course exists
-            course = Course.objects.filter(course_id=course_id).first()
-            if not course:
-                return JsonResponse({'status': 'error', 'message': 'Invalid course_id'}, status=404)
+            # Ensure subject exists
+            subject = Subject.objects.filter(subject_id=subject_id).first()
+            if not subject:
+                return JsonResponse({'status': 'error', 'message': 'Invalid subject_id'}, status=404)
+
+            # Get the related course from the subject
+            course = subject.course
 
             # Save the notification in the database
             notification = Noti.objects.create(course=course, message=message)
 
             # Define a unique Pusher channel for this course
-            channel_name = f'course-{course_id}'
+            channel_name = f'course-{course.course_id}'
 
             # Trigger Pusher event
             pusher_client.trigger(channel_name, 'new-notification', {
@@ -42,14 +47,12 @@ def send_course_notification(request):
                 'created_at': notification.created_at.isoformat()
             })
 
-            return JsonResponse({'status': 'success', 'message': 'Notification sent successfullyyyyy0y!'})
+            return JsonResponse({'status': 'success', 'message': 'Notification sent successfully!'});
+        
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
-
-from django.core.serializers import serialize
-from django.http import JsonResponse
 
 def get_course_notifications(request, course_id):
     try:

@@ -26,6 +26,9 @@ const poppins = Poppins({ weight: "400", subsets: ["latin"] });
 export default function RootLayout({ children }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  setTimeout(() => {
+    
+  }, 2000);
 
   useEffect(() => {
     // Check if user exists in localStorage
@@ -67,7 +70,7 @@ export default function RootLayout({ children }) {
           )}
           {children}
           <Sheet>
-            <SheetTrigger>Open</SheetTrigger>
+            {/* <SheetTrigger>Open</SheetTrigger> */}
             <SheetContent>
               <SheetTitle>Noti</SheetTitle>
               <SheetHeader>

@@ -870,7 +870,7 @@ def get_all_assessments(request, teacher_id):
             ]
 
             # Get course_id associated with the subject
-            course_id = Course.objects.filter(subject=assessment.subject).values_list("course_id", flat=True).first()
+            course_id = Course.objects.filter(subjects=assessment.subject).values_list("course_id", flat=True).first()
 
             assessments_data.append({
                 "assessment_id": assessment.assessment_id,
@@ -890,6 +890,7 @@ def get_all_assessments(request, teacher_id):
         return JsonResponse({"error": "Teacher not found"}, status=404)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+    
 @csrf_exempt  # Disable CSRF for testing (use proper authentication in production)
 def create_assessment(request):
     if request.method == "POST":

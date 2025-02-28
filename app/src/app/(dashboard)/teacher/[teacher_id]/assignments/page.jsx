@@ -81,8 +81,7 @@ const AssignmentsPage = () => {
         toast({ title: "Success", description: "Assignment posted successfully!" });
 
         // Send a notification after posting the assignment
-        const user = JSON.parse(localStorage.getItem('user'))
-        await sendNotification(JSON.parse(user.courseId[0]), `New assignment posted: ${newAssignment.title}`);
+        await sendNotification(newAssignment.subject_id, `New assignment posted: ${newAssignment.title}`);
 
       } catch (error) {
           console.error("Error posting assignment:", error);
