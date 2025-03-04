@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'djangoapp',
     'alumni',
-    'noti'
+    'noti',
+    'cocurricular',
 ]
 
 MIDDLEWARE = [
@@ -127,13 +128,12 @@ AUTH_PASSWORD_VALIDATORS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
+      
+
 
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+       
     ),
 }
 
@@ -167,4 +167,9 @@ CORS_ALLOW_ALL_ORIGINS = True
 LOGIN_REDIRECT_URL = reverse_lazy("admin_dashboard") 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:8000',  # If running locally
+    'http://localhost:8000',
+]
 
