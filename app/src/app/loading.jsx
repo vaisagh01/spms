@@ -17,7 +17,9 @@ const Loading = () => {
     return <div>Content Loaded!</div>;
   }
 
-  return <div>Loading.........asasdasd</div>;
+  return <div className="h-screen w-screen flex item-center justify-center">
+  <img src="/1png.png" className="w-20 h-20 " alt="" />
+</div>;
 };
 
 export default Loading;

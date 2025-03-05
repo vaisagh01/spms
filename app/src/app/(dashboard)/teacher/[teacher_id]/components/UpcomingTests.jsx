@@ -17,8 +17,11 @@ function UpcomingTests() {
       .then(response => {
         const { assessments, marks } = response.data;
 
+        // Filter out marks with null value
+        const validMarks = marks.filter(mark => mark.marks_obtained == null);
+
         // Extract assessment IDs that have marks
-        const completedAssessmentIds = new Set(marks.map(mark => mark.assessment_id));
+        const completedAssessmentIds = new Set(validMarks.map(mark => mark.assessment_id));
 
         // Filter out assessments that exist in the completedAssessmentIds set
         const filteredAssessments = assessments.filter(assessment => !completedAssessmentIds.has(assessment.assessment_id));

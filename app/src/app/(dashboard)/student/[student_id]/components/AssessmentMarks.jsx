@@ -25,10 +25,11 @@ function AssessmentMarks() {
       .catch(error => console.error("Error fetching assessment marks:", error));
   }, []);
   
+  console.log(assessments);
   // Get unique semesters and subjects for filters
   const semesters = [...new Set(assessments.map(item => item.semester))];
   const subjects = [...new Set(assessments.map(item => item.subject_name))];
-
+  
   // Filter assessments by semester and subject
   let filteredMarks = marks.filter(mark => {
     let assessment = assessments.find(a => a.assessment_id === mark.assessment_id);
@@ -57,17 +58,20 @@ function AssessmentMarks() {
       </CardHeader>
       <CardContent>
         <div className="flex gap-1">
-            <Select onValueChange={setSemester} defaultValue="all">
+          <Select value={semester} onValueChange={(value) => setSemester(value)}>
             <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by Semester" />
+              <SelectValue placeholder="Filter by Semester" />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value="all">All Semesters</SelectItem>
-                {semesters.map((sem, index) => (
-                <SelectItem key={index} value={sem}>{`Semester ${sem}`}</SelectItem>
-                ))}
+              <SelectItem value="all">All Semesters</SelectItem>
+              {semesters.map((sem, index) => (
+                <SelectItem key={index} value={sem.toString()}>
+                  {`Semester ${sem}`}
+                </SelectItem>
+              ))}
             </SelectContent>
-            </Select>
+          </Select>
+
 
             {/* Filter by Subject */}
             <Select onValueChange={setSubject} defaultValue="all">

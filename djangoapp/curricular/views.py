@@ -180,6 +180,7 @@ def get_student_marks_by_assessment_id(request, assessment_id):
         return JsonResponse({"error": str(e)}, status=500)
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Avg, Sum
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.views.decorators.http import require_POST
@@ -335,11 +336,13 @@ def get_assessments_and_marks_by_student(request, student_id):
     # Organize assessment data
     assessments_data = [{
         "assessment_id": assessment.assessment_id,
+        "assessment_name":assessment.assessment_name,
         "assessment_type": assessment.assessment_type,
         "total_marks": assessment.total_marks,
         "date_conducted": assessment.date_conducted.strftime("%Y-%m-%d"),
         "subject_name": assessment.subject.subject_name,
         "subject_code": assessment.subject.subject_code,
+        "semester":assessment.semester
     } for assessment in assessments]
 
     # Organize marks data
@@ -992,6 +995,102 @@ def get_or_update_student_marks(request, assessment_id):
 def get_all_students(request):
     students = Student.objects.select_related("course").all().values(
         "student_id", "username", "phone_number", "date_of_birth", 
-        "enrollment_number", "course__name", "year_of_study", "semester"
+        "enrollment_number", "course__course_name", "year_of_study", "semester"
     )
     return JsonResponse(list(students), safe=False)
+
+
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from django.db.models import Avg
+from django.urls import path
+from .models import Student, Assessment, StudentMarks, AssessmentType
+
+def calculate_gpa(marks, total_marks):
+    if total_marks == 0:
+        return 0
+    percentage = (marks / total_marks) * 100
+    if percentage >= 90:
+        return 10
+    elif percentage >= 80:
+        return 9
+    elif percentage >= 70:
+        return 8
+    elif percentage >= 60:
+        return 7
+    elif percentage >= 50:
+        return 6
+    elif percentage >= 40:
+        return 5
+    else:
+        return 0
+
+def get_semester_wise_results(request, student_id):
+    student = get_object_or_404(Student, pk=student_id)
+    
+    # Get all unique semesters where the student has assessments
+    semesters = Assessment.objects.filter(
+        student_marks__student=student
+    ).values_list('semester', flat=True).distinct()
+    
+    semester_results = {}
+    
+    for semester in semesters:
+        subjects = Assessment.objects.filter(semester=semester, student_marks__student=student).values_list('subject', flat=True).distinct()
+        subject_results = {}
+        total_marks_obtained = 0
+        total_max_marks = 0
+        
+        # Check if End Semester assessments are completed for this semester
+        end_sem_exists = StudentMarks.objects.filter(
+            assessment__semester=semester,
+            assessment__assessment_type=AssessmentType.END_SEMESTER,
+            student=student
+        ).exists()
+        
+        if not end_sem_exists:
+            continue  # Skip the semester if End Semester exams are not completed
+        
+        for subject in subjects:
+            subject_name = Subject.objects.get(pk=subject).subject_name
+            mid_sem = Assessment.objects.filter(semester=semester, subject_id=subject, assessment_type=AssessmentType.MID_SEMESTER).first()
+            end_sem = Assessment.objects.filter(semester=semester, subject_id=subject, assessment_type=AssessmentType.END_SEMESTER).first()
+            
+            mid_sem_marks = StudentMarks.objects.filter(
+                assessment=mid_sem,
+                student=student
+            ).aggregate(total=Avg('marks_obtained'))['total'] or 0
+            
+            end_sem_marks = StudentMarks.objects.filter(
+                assessment=end_sem,
+                student=student
+            ).aggregate(total=Avg('marks_obtained'))['total'] or 0
+            
+            mid_sem_weighted = (mid_sem_marks / (mid_sem.total_marks if mid_sem else 1)) * 50 if mid_sem else 0
+            end_sem_weighted = (end_sem_marks / (end_sem.total_marks if end_sem else 1)) * 50 if end_sem else 0
+            subject_total_marks = mid_sem_weighted + end_sem_weighted
+            subject_max_marks = 100
+            
+            total_marks_obtained += subject_total_marks
+            total_max_marks += subject_max_marks
+            
+            subject_results[subject_name] = {
+                "mid_sem_marks": mid_sem_marks,
+                "end_sem_marks": end_sem_marks,
+                "total_marks": subject_total_marks,
+                "max_marks": subject_max_marks,
+                "percentage": (subject_total_marks / subject_max_marks) * 100 if subject_max_marks > 0 else 0
+            }
+        
+        semester_gpa = calculate_gpa(total_marks_obtained, total_max_marks)
+        semester_percentage = (total_marks_obtained / total_max_marks) * 100 if total_max_marks > 0 else 0
+        
+        semester_results[semester] = {
+            "subjects": subject_results,
+            "total_marks_obtained": total_marks_obtained,
+            "total_max_marks": total_max_marks,
+            "percentage": semester_percentage,
+            "gpa": semester_gpa,
+        }
+    
+    return JsonResponse({"student_id": student_id, "results": semester_results})

@@ -88,7 +88,7 @@ const Page = () => {
             const allTopicsCompleted = subject.topics?.length > 0 && subject.topics.every(topic => topic.is_completed);
 
             return (
-              <Card key={subject.subject_id} onClick={() => handleSubjectClick(subject)} className="cursor-pointer hover:bg-gray-50">
+              <Card key={subject.subject_id} onClick={() => handleSubjectClick(subject)} className="cursor-pointer border-2 border-indigo-400 bg-indigo-100 hover:bg-indigo-200">
                 <CardHeader>
                   <CardTitle className="w-full flex items-center justify-between">
                     <p className="text-lg">{subject.subject_name}</p>  {allTopicsCompleted && "✅"}

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.contrib.auth.models import BaseUserManager, AbstractUser
+from django.forms import ValidationError
 from django.utils.timezone import now
 from django.db import models
 
@@ -75,6 +76,7 @@ class Student(User):
     class Meta:
         verbose_name = 'Student'
         verbose_name_plural = 'Students'
+
 
 class TeacherManager(BaseUserManager):
     def get_queryset(self):
@@ -210,6 +212,8 @@ class AssessmentType(models.TextChoices):
 class Assessment(models.Model):
     assessment_id = models.AutoField(primary_key=True)
     subject = models.ForeignKey("Subject", on_delete=models.CASCADE, related_name="assessments")
+    semester = models.IntegerField(choices=SEMESTER_CHOICES, default=1)
+    assessment_name = models.CharField(max_length=100)
     assessment_type = models.CharField(
         max_length=20,
         choices=AssessmentType.choices,
@@ -218,8 +222,26 @@ class Assessment(models.Model):
     total_marks = models.IntegerField()
     date_conducted = models.DateField()
 
+    def clean(self):
+        # Rule 2: Only one Mid Semester assessment per student per semester
+        if self.assessment_type == AssessmentType.MID_SEMESTER:
+            existing_midsem = Assessment.objects.filter(
+                subject=self.subject,
+                semester=self.semester,
+                assessment_type=AssessmentType.MID_SEMESTER
+            ).exclude(pk=self.pk)
+
+            if existing_midsem.exists():
+                raise ValidationError("Only one Mid Semester assessment is allowed per subject per semester.")
+
+    def save(self, *args, **kwargs):
+        self.clean()  # Validate before saving
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.assessment_type} - {self.subject.subject_name}"
+        return f"{self.assessment_name} - {self.assessment_type} - {self.subject.subject_name}"
+
+    
 class StudentMarks(models.Model):
     marks_id = models.AutoField(primary_key=True)
     assessment = models.ForeignKey(Assessment, on_delete=models.CASCADE, related_name="student_marks")

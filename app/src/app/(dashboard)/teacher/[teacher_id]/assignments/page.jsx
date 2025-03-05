@@ -65,6 +65,10 @@ const AssignmentsPage = () => {
   
 
   const handlePostAssignment = async () => {
+    if (!newAssignment.subject_id || !newAssignment.title || !newAssignment.description || !newAssignment.due_date || !newAssignment.due_time || !newAssignment.max_marks) {
+      toast({ title: "Error", description: "Please fill in all fields", variant: "destructive" });
+      return;
+    }
     setIsPosting(true);
     try {
         const response = await axios.post(`${API_BASE_URL}/assignments/post/${teacher_id}/`, newAssignment);
@@ -146,7 +150,14 @@ const AssignmentsPage = () => {
       toast({ title: "Error", description: "Failed to update submission", variant: "destructive" });
     }
   };
-
+  const handleDateChange = (e) => {
+    const today = new Date().toISOString().split("T")[0];
+    if (e.target.value >= today) {
+      setNewAssignment({ ...newAssignment, due_date: e.target.value });
+    } else {
+      toast({ title: "Invalid Date", description: "Please select a date from today onwards", variant: "destructive" });
+    }
+  };
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Manage Assignments</h1>
@@ -173,7 +184,7 @@ const AssignmentsPage = () => {
           </Select>
           <Input placeholder="Title" value={newAssignment.title} onChange={(e) => setNewAssignment({ ...newAssignment, title: e.target.value })} />
           <Textarea placeholder="Description" value={newAssignment.description} onChange={(e) => setNewAssignment({ ...newAssignment, description: e.target.value })} />
-          <Input type="date" value={newAssignment.due_date} onChange={(e) => setNewAssignment({ ...newAssignment, due_date: e.target.value })} />
+          <Input type="date" value={newAssignment.due_date} onChange={handleDateChange} />          
           <Input type="time" value={newAssignment.due_time} onChange={(e) => setNewAssignment({ ...newAssignment, due_time: e.target.value })} />
           <Input type="number" placeholder="Max Marks" value={newAssignment.max_marks} onChange={(e) => setNewAssignment({ ...newAssignment, max_marks: e.target.value })} />
           <Button onClick={handlePostAssignment} disabled={isPosting}>

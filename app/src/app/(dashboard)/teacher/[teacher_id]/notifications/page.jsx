@@ -52,7 +52,7 @@ export default function NotificationsPage() {
     try {
       const response = await axios.post(
         "http://127.0.0.1:8000/noti/send-course-notification/",
-        { course_id: courseId, message },
+        { subject_id: courseId, message },
         { headers: { "Content-Type": "application/json" } }
       );
 

@@ -4,13 +4,15 @@ import axios from "axios";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
 
 const StudentsTable = () => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    axios.get("/students/")
+    axios.get("http://localhost:8000/curricular/students/")
       .then((response) => {
         setStudents(response.data);
       })
@@ -50,7 +52,7 @@ const StudentsTable = () => {
               ))
             ) : (
               students.map((student) => (
-                <TableRow key={student.student_id}>
+                <TableRow className="cursor-pointer" onClick={()=> router.push(`managestudents/${student.student_id}`)} key={student.student_id}>
                   <TableCell>{student.student_id}</TableCell>
                   <TableCell>{student.username}</TableCell>
                   <TableCell>{student.phone_number || "N/A"}</TableCell>

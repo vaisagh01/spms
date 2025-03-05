@@ -22,12 +22,12 @@ const useNotifications = () => {
     }, []);
 
     // Function to send notifications
-    const sendNotification = async (courseId, message) => {
-        if (!courseId || !message) return;
+    const sendNotification = async (subject_id, message) => {
+        if (!subject_id || !message) return;
 
         try {
             await axios.post("http://127.0.0.1:8000/noti/send-course-notification/", {
-                course_id: courseId,
+                subject_id: subject_id,
                 message,
             }, {
                 headers: { "Content-Type": "application/json" },

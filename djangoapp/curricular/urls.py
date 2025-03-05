@@ -10,6 +10,8 @@ urlpatterns = [
     path('login/', api_login, name='api_login'),
     path('logout/', api_logout, name='api_logout'),
     # Student-related URLs
+    
+    path('students/', views.get_all_students, name='get_all_student'),
     path('student/<int:student_id>/', get_student_details, name='get_student_details'),
     path('subjects/student/<int:student_id>/', get_subjects_by_student, name='get_subjects_by_student'),
     path('assignments/student/<int:student_id>/', get_assignments_by_student, name='get_assignments_by_student'),
@@ -49,6 +51,9 @@ urlpatterns = [
     path("assessments/<int:teacher_id>/", views.get_all_assessments, name="get_all_assessments"),
     path("students/<int:subject_id>/", views.get_students_by_subject, name="get_students_by_subject"),
     path("assessment/<int:assessment_id>/marks/", views.get_or_update_student_marks, name="get_or_update_student_marks"),
+    
+    path('student/<int:student_id>/results/', views.get_semester_wise_results, name='get_semester_wise_results'),
+
 
 
 

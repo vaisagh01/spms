@@ -110,7 +110,6 @@ const MyAssignments = ({ data, studentId, refreshData }) => {
     statusText = 'Completed';
   }
   console.log(data);
-  
 
   return (
     <Card className={`border-l-4 p-4 ${borderColor}`}>
@@ -140,19 +139,18 @@ const MyAssignments = ({ data, studentId, refreshData }) => {
           {statusText}
         </span>
       </CardContent>
-            {data?.submitted_file && (
-              <>
-                  <p className="text-sm font-medium text-gray-700">Submitted File:</p>
-                  <a
-                    href={data.submitted_file}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline break-all"
-                    >
-                    {data.submitted_file.split('/').pop()}
-                  </a>
-                    </>
-              )}
+        {data?.submitted_file && (
+          <CardContent>
+            <p className="text-sm font-medium text-gray-700">Submitted File:</p>
+            <a
+              href={`http://localhost:8000${data.submitted_file}`} // Prepend base URL
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline break-all"
+            >
+              {data.submitted_file || "View Submitted File"}
+            </a>
+          </CardContent>
+        )}
 
       <CardContent className="flex items-center justify-between mt-2">
         <Dialog>

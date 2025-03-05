@@ -92,11 +92,6 @@ export default function Header() {
     <div className="p-4 bg-slate-50 flex justify-between items-center border-b border-slate-200">
       <div className="flex items-center gap-2">
           <SidebarTrigger />
-          <div>
-            <img src="/1png.png" className="w-10" alt="" srcset="" />
-            <img src="/2png.png" className="w-24" alt="" srcset="" />
-          </div>
-
       </div>
       <div className="w-1/4 flex justify-between items-center gap-3">
         <Input placeholder="Search..." />

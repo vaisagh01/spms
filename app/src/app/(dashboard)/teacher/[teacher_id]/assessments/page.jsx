@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select,SelectItem,SelectTrigger,SelectValue,SelectContent } from "@/components/ui/select";
 import useNotifications from "../notifications/sendNoti";
+import { useParams } from "next/navigation";
 
 export default function AssessmentsPage() {
   const [assessments, setAssessments] = useState([]);
@@ -18,6 +19,7 @@ export default function AssessmentsPage() {
   const [subjects, setSubjects] = useState([]);
   const [openMarksDialog, setOpenMarksDialog] = useState(false);
   const [selectedAssessment, setSelectedAssessment] = useState(null);
+  const params = useParams();
   const [newAssessment, setNewAssessment] = useState({
     subject_id: "",
     assessment_type: "",
@@ -26,9 +28,8 @@ export default function AssessmentsPage() {
   });
   const { sendNotification } = useNotifications();
 
-
   const { toast } = useToast();
-  const teacherId = 1; // Replace with dynamic teacher_id
+  const { teacher_id } = useParams();
 
   useEffect(() => {
     fetchData();
@@ -36,17 +37,16 @@ export default function AssessmentsPage() {
 
   async function fetchData() {
     try {
-      const { data } = await axios.get(`http://localhost:8000/curricular/assessments/${teacherId}/`);
+      const { data } = await axios.get(`http://localhost:8000/curricular/assessments/${teacher_id}/`);
       setAssessments(data.assessments || []);
-      const subjectsRes = await axios.get(`http://localhost:8000/curricular/teacher/${teacherId}/subjects/`);
+      const subjectsRes = await axios.get(`http://localhost:8000/curricular/teacher/${teacher_id}/subjects/`);
       setSubjects(subjectsRes.data.subjects || []);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   }
-  console.log(assessments);
   
-  async function fetchStudents(assessmentId, subjectId) {
+  async function fetchStudents(assessmentId, subjectId, totalMarks) {
     try {
       const { data: studentsData } = await axios.get(`http://localhost:8000/curricular/students/${subjectId}/`);
       
@@ -61,30 +61,36 @@ export default function AssessmentsPage() {
           marks_obtained: markEntry ? markEntry.marks_obtained : "", // Show marks if they exist
         };
       });
-
+      
       // Update state with fetched data
       setStudents(studentsWithMarks);
-      setSelectedAssessment({ assessmentId, subjectId });
+      setSelectedAssessment({ assessmentId, subjectId, total_marks: totalMarks });
       setOpenMarksDialog(true);
     } catch (error) {
       console.error("Error fetching students and marks:", error);
     }
   }
 
+
   const handleSubmit = async () => {
+    console.log(selectedAssessment);
+    
     try {
+      if (newAssessment.total_marks < 0) {
+        toast({ title: "Error", description: "Total Marks cannot be negative",variant:"destructive"});
+        return;
+      }
       await axios.post("http://localhost:8000/curricular/assessments/create/", {
         ...newAssessment,
-        teacher_id: teacherId,
+        teacher_id: teacher_id,
       });
-      console.log(newAssessment);
       
 
       toast({ title: "Success", description: "Assessment Created Successfully!" });
       // await sendNotification(, `New assignment posted: ${newAssignment.title}`);
       setOpen(false);
       setNewAssessment({ subject_id: "", assessment_type: "", total_marks: "", date_conducted: "" });
-      await sendNotification(newAssessment.subject_id, `New assignment posted: ${newAssessment.title}`);
+      await sendNotification(newAssessment.subject_id, `New assessment posted: ${newAssessment.assessment_type}`);
       fetchData(); // Refresh table after submission
     } catch (error) {
       console.error("Error submitting assessment:", error);
@@ -93,7 +99,16 @@ export default function AssessmentsPage() {
   };
 
   async function handleMarksSubmit() {
+    console.log(selectedAssessment);
+    
     try {
+      for (let student of students) {
+        
+        if (student.marks_obtained < 0 || student.marks_obtained > parseFloat(selectedAssessment.total_marks)) {
+          toast({ title: "Error", description: `Marks should be between 0 and ${selectedAssessment.total_marks}`,variant:"destructive" });
+          return;
+        }
+      }
       await axios.post(`http://localhost:8000/curricular/assessment/${selectedAssessment.assessmentId}/marks/`, {
         marks: students.map(({ student_id, marks_obtained }) => ({
           student_id,
@@ -107,7 +122,7 @@ export default function AssessmentsPage() {
       console.error("Error updating marks:", error);
     }
   }
-
+  
   return (
     <div className="p-6">
       <Card>
@@ -194,7 +209,7 @@ export default function AssessmentsPage() {
                   <TableCell>{assessment.total_marks}</TableCell>
                   <TableCell>{assessment.date_conducted}</TableCell>
                   <TableCell>
-                    <Button onClick={() => fetchStudents(assessment.assessment_id, assessment.subject_id)}>
+                    <Button onClick={() => fetchStudents(assessment.assessment_id, assessment.subject_id, assessment.total_marks)}>
                       Enter Marks
                     </Button>
                   </TableCell>
