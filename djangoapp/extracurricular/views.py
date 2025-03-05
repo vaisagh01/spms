@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from curricular.models import Student
-from .models import Club, ClubMembers, Event, EventParticipation
+from .models import Club, ClubMembers, Event, EventParticipation, EventPoster
 from .serializers import ClubMemberSerializer, ClubSerializer, EventSerializer
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
@@ -484,4 +484,52 @@ def get_student_clubs(request, student_id):
 
     except ObjectDoesNotExist:
         return JsonResponse({"error": "Student not found"}, status=404)
+def create_event_poster(request, event_id):
+    if request.method == "POST":
+        try:
+            # Check if the event exists
+            event = Event.objects.get(event_id=event_id)
+
+            # Get form data
+            location = request.POST.get("location")
+            time = request.POST.get("time")
+            poster_image = request.FILES.get("poster_image")  # File upload
+
+            if not poster_image:
+                return JsonResponse({"error": "Poster image is required."}, status=400)
+
+            # Save the image and create the poster entry
+            event_poster = EventPoster.objects.create(
+                event=event,
+                location=location,
+                time=time,
+                poster_image=poster_image
+            )
+
+            return JsonResponse({
+                "message": "Event poster created successfully!",
+                "poster_id": event_poster.poster_id
+            }, status=201)
+
+        except Event.DoesNotExist:
+            return JsonResponse({"error": "Event not found."}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    
+    return JsonResponse({"error": "Invalid request method."}, status=405)
+
+def get_event_poster(request, event_id):
+    try:
+        event_poster = EventPoster.objects.get(event__event_id=event_id)  # Fetch poster for the given event_id
+        poster_data = {
+            "poster_id": event_poster.poster_id,
+            "event_id": event_poster.event.event_id,
+            "poster_image": request.build_absolute_uri(event_poster.poster_image.url),  # Get full URL
+            "location": event_poster.location,
+            "time": event_poster.time.strftime("%H:%M:%S")  # Format time
+        }
+        return JsonResponse({"poster": poster_data}, safe=False)
+    except EventPoster.DoesNotExist:
+        return JsonResponse({"error": "Poster not found for this event."}, status=404)
+
 
