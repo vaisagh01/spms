@@ -57,6 +57,13 @@ class Course(models.Model):
     course_name = models.CharField(max_length=255)
     department = models.CharField(max_length=255)
     credits = models.IntegerField()
+    year = models.IntegerField()  # Added Year field
+    class_teacher = models.ForeignKey(
+        'Teacher',  # Links to Teacher model
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='class_courses'  # For tracking class teacher role
+    )    
     def __str__(self):
         return self.course_name
     
