@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'djangoapp',
     'alumni',
-    'noti'
+    'noti',
+    'resume'
 ]
 
 MIDDLEWARE = [

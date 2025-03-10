@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { text-align: center; }
+        .section { margin-bottom: 20px; }
+        .bold { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>{{ student.username }}'s Resume</h1>
+    <p><span class="bold">Email:</span> {{ student.email }}</p>
+    <p><span class="bold">Phone:</span> {{ student.phone_number }}</p>
+    <p><span class="bold">Date of Birth:</span> {{ student.date_of_birth }}</p>
+    <p><span class="bold">Enrollment Number:</span> {{ student.enrollment_number }}</p>
+    
+    <div class="section">
+        <h2>Course Details</h2>
+        <p><span class="bold">Course:</span> {{ course.course_name }}</p>
+        <p><span class="bold">Department:</span> {{ course.department }}</p>
+        <p><span class="bold">Credits:</span> {{ course.credits }}</p>
+    </div>
+
+    <div class="section">
+        <h2>Clubs & Leadership Roles</h2>
+        <ul>
+            {% for club in clubs %}
+                <li>{{ club.club.club_name }} - {{ club.role_in_club }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Event Participation & Achievements</h2>
+        <ul>
+            {% for event in events %}
+                <li>{{ event.event.event_name }} - Role: {{ event.role_in_event }} - Achievement: {{ event.achievement }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
