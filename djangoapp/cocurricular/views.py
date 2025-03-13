@@ -5,14 +5,16 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from .models import Internship, Project, Certification
-from .serializers import InternshipSerializer, ProjectSerializer, CertificationSerializer
+from .models import Internship, Project, Certification, CoCurricularEventParticipation, CoCurricularEvent
+from .serializers import InternshipSerializer, ProjectSerializer, CertificationSerializer, CoCurricularEventParticipationSerializer, CoCurricularEventSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from curricular.models import Student,Teacher, Course  
+from curricular.models import Student,Teacher, Course
 import json
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
+from rest_framework import status
+
 
 @csrf_exempt
 @api_view(['POST'])
@@ -76,13 +78,17 @@ def reject_internship(request, student_id, internship_id):
     return JsonResponse({"message": "Internship rejected."})
 
 @api_view(['POST'])
-def add_project(request):
+def add_project(request, student_id):
     """
-    Endpoint for students to add a project.
+    Endpoint for students to add a project via student_id in the URL.
     """
-    data = request.data.copy()
-    data['student'] = request.user.id  # Assign the logged-in user as the student
+    # Ensure the student exists
+    student = get_object_or_404(Student, student_id=student_id)
 
+    # Copy data and assign the verified student ID
+    data = request.data.copy()
+    data['student'] = student_id  
+    print("Data being sent to serializer:", data) 
     serializer = ProjectSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
@@ -90,33 +96,108 @@ def add_project(request):
             {"message": "Project added successfully", "data": serializer.data},
             status=status.HTTP_201_CREATED
         )
+    
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def upload_certification(request, project_id):
-    """
-    Endpoint to upload a certification for a specific project.
-    """
-    try:
-        project = Project.objects.get(id=project_id, student=request.user)
-    except Project.DoesNotExist:
-        return Response({"error": "Project not found or you do not have permission."}, status=status.HTTP_404_NOT_FOUND)
 
-    serializer = CertificationSerializer(data=request.data)
+
+@api_view(['GET'])
+def get_projects(request,student_id):
+    """
+    Retrieve all projects for the logged-in student.
+    """
+    projects = Project.objects.filter(student_id=student_id)
+    serializer = ProjectSerializer(projects, many=True)
+    return Response({"projects": serializer.data})
+
+
+@api_view(['POST'])
+def upload_certification(request, student_id):
+    """
+    Endpoint for students to upload a certification.
+    """
+    student = get_object_or_404(Student, student_id=student_id)
+
+    data = request.data.copy()
+    data['student'] = student_id
+
+    serializer = CertificationSerializer(data=data)
     if serializer.is_valid():
-        serializer.save(project=project)
-        return Response({"message": "Certification uploaded successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
+        serializer.save()
+        return Response(
+            {"message": "Certification uploaded successfully", "data": serializer.data},
+            status=status.HTTP_201_CREATED
+        )
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_projects(request):
+def get_certifications(request, student_id):
     """
-    Retrieve all projects for the logged-in student.
+    Endpoint to retrieve all certifications for a specific student.
     """
-    projects = Project.objects.filter(student=request.user)
-    serializer = ProjectSerializer(projects, many=True)
-    return Response({"projects": serializer.data})
+    student = get_object_or_404(Student, student_id=student_id)
+    certifications = Certification.objects.filter(student_id=student_id)
 
+    serializer = CertificationSerializer(certifications, many=True)
+    return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+
+def get_student_co_curricular_participations(request, student_id):
+    # Fetch the student object, raising 404 error if not found
+    student = get_object_or_404(Student, pk=student_id)
+
+    # Get all the co-curricular event participations for the student
+    participations = CoCurricularEventParticipation.objects.filter(student=student)
+
+    # Serialize the participations
+    serialized_participations = CoCurricularEventParticipationSerializer(participations, many=True)
+
+    # Return the serialized data as a JSON response
+    return JsonResponse({'co_curricular_participations': serialized_participations.data})
+
+
+def get_all_co_curricular_events(request):
+    # Fetch all co-curricular events from the database
+    events = CoCurricularEvent.objects.all()
+
+    # Serialize the events, including related participants
+    event_data = []
+    for event in events:
+        event_participants = event.participants.all()  # Get all participants for the event
+        participants_data = []
+
+        for participation in event_participants:
+            participants_data.append({
+                'student': participation.student.username,
+                'role_in_event': participation.role_in_event,
+                'achievement': participation.achievement
+            })
+
+        event_data.append({
+            'event_name': event.event_name,
+            'event_type': event.event_type,
+            'description': event.description,
+            'event_date': event.event_date,
+            'location': event.location,
+            'organizer': event.organizer,
+            'participants': participants_data
+        })
+
+    # Return the serialized event data as a JSON response
+    return JsonResponse({'co_curricular_events': event_data})
+
+@api_view(['POST'])
+def create_co_curricular_event(request):
+    """
+    Endpoint to create a new co-curricular event.
+    """
+    serializer = CoCurricularEventSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        serializer.save()
+        return Response(
+            {"message": "Co-Curricular Event created successfully", "data": serializer.data},
+            status=status.HTTP_201_CREATED
+        )
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
