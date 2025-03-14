@@ -421,8 +421,8 @@ def add_participant(request):
             achievement = data.get("achievement", "")
             event_id = data.get("event_id")
 
-            event = get_object_or_404(Event, id=event_id)
-            club_member = get_object_or_404(ClubMembers, id=club_member_id)
+            event = get_object_or_404(Event, event_id=event_id)
+            club_member = get_object_or_404(ClubMembers, member_id=club_member_id)
 
             # Check if the participant already exists
             if EventParticipation.objects.filter(event=event, club_member=club_member).exists():

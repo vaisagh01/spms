@@ -23,8 +23,10 @@ export default function AssessmentsPage() {
   const [newAssessment, setNewAssessment] = useState({
     subject_id: "",
     assessment_type: "",
+    assessment_name:"",
     total_marks: "",
     date_conducted: "",
+    semester:""
   });
   const { sendNotification } = useNotifications();
 
@@ -37,7 +39,7 @@ export default function AssessmentsPage() {
 
   async function fetchData() {
     try {
-      const { data } = await axios.get(`http://localhost:8000/curricular/assessments/${teacher_id}/`);
+      const { data } = await axios.get(`http://localhost:8000/assessments/${teacher_id}/`);
       setAssessments(data.assessments || []);
       const subjectsRes = await axios.get(`http://localhost:8000/curricular/teacher/${teacher_id}/subjects/`);
       setSubjects(subjectsRes.data.subjects || []);
@@ -51,7 +53,7 @@ export default function AssessmentsPage() {
       const { data: studentsData } = await axios.get(`http://localhost:8000/curricular/students/${subjectId}/`);
       
       // Fetch marks
-      const marksRes = await axios.get(`http://localhost:8000/curricular/assessment/${assessmentId}/marks/`);
+      const marksRes = await axios.get(`http://localhost:8000/assessments/${assessmentId}/marks/`);
       
       // Merge students with their marks
       const studentsWithMarks = studentsData.students.map((student) => {
@@ -70,17 +72,16 @@ export default function AssessmentsPage() {
       console.error("Error fetching students and marks:", error);
     }
   }
-
-
+  
   const handleSubmit = async () => {
-    console.log(selectedAssessment);
     
+    setNewAssessment({ ...newAssessment, semester: selectedAssessment.semester })
     try {
       if (newAssessment.total_marks < 0) {
         toast({ title: "Error", description: "Total Marks cannot be negative",variant:"destructive"});
         return;
       }
-      await axios.post("http://localhost:8000/curricular/assessments/create/", {
+      await axios.post("http://localhost:8000/assessments/create/", {
         ...newAssessment,
         teacher_id: teacher_id,
       });
@@ -89,7 +90,7 @@ export default function AssessmentsPage() {
       toast({ title: "Success", description: "Assessment Created Successfully!" });
       // await sendNotification(, `New assignment posted: ${newAssignment.title}`);
       setOpen(false);
-      setNewAssessment({ subject_id: "", assessment_type: "", total_marks: "", date_conducted: "" });
+      setNewAssessment({ subject_id: "", assessment_type: "",assessment_name: "", total_marks: "", date_conducted: "" });
       await sendNotification(newAssessment.subject_id, `New assessment posted: ${newAssessment.assessment_type}`);
       fetchData(); // Refresh table after submission
     } catch (error) {
@@ -109,7 +110,7 @@ export default function AssessmentsPage() {
           return;
         }
       }
-      await axios.post(`http://localhost:8000/curricular/assessment/${selectedAssessment.assessmentId}/marks/`, {
+      await axios.post(`http://localhost:8000/assessments/${selectedAssessment.assessmentId}/marks/`, {
         marks: students.map(({ student_id, marks_obtained }) => ({
           student_id,
           marks_obtained,
@@ -171,6 +172,13 @@ export default function AssessmentsPage() {
                 </Select>
 
                 <Input
+                  type="text"
+                  placeholder="Assessment name"
+                  value={newAssessment.assessment_name}
+                  onChange={(e) => setNewAssessment({ ...newAssessment, assessment_name: e.target.value })}
+                  required
+                />
+                <Input
                   type="number"
                   placeholder="Total Marks"
                   value={newAssessment.total_marks}
@@ -195,6 +203,7 @@ export default function AssessmentsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Type</TableHead>
+                <TableHead>Name</TableHead>
                 <TableHead>Subject</TableHead>
                 <TableHead>Total Marks</TableHead>
                 <TableHead>Date Conducted</TableHead>
@@ -205,6 +214,7 @@ export default function AssessmentsPage() {
               {assessments.map((assessment) => (
                 <TableRow key={assessment.assessment_id}>
                   <TableCell>{assessment.assessment_type}</TableCell>
+                  <TableCell>{assessment.assessment_name}</TableCell>
                   <TableCell>{assessment.subject_name} ({assessment.subject_code})</TableCell>
                   <TableCell>{assessment.total_marks}</TableCell>
                   <TableCell>{assessment.date_conducted}</TableCell>
@@ -237,7 +247,7 @@ export default function AssessmentsPage() {
               <TableBody>
                 {students.map((student, index) => (
                   <TableRow key={student.student_id}>
-                    <TableCell>{student.first_name} {student.last_name}</TableCell>
+                    <TableCell>{student.username}</TableCell>
                     <TableCell>
                       <Input
                         type="number"

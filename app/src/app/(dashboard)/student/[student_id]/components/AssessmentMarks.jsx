@@ -17,7 +17,7 @@ function AssessmentMarks() {
 
   useEffect(() => {
     const id = params.student_id; // Default for testing
-    axios.get(`http://127.0.0.1:8000/curricular/student/${id}/assignments-marks/`)
+    axios.get(`http://127.0.0.1:8000/assessments/student/${id}/assignments-marks/`)
       .then(response => {
         setAssessments(response.data.assessments);
         setMarks(response.data.marks);

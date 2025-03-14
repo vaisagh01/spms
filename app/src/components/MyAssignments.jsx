@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 const MyAssignments = ({ data, studentId, refreshData }) => {
   const { toast } = useToast();
@@ -112,7 +113,7 @@ const MyAssignments = ({ data, studentId, refreshData }) => {
   console.log(data);
 
   return (
-    <Card className={`border-l-4 p-4 ${borderColor}`}>
+    <Card className={`border-l-4 rounded-none p-4 ${borderColor}`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-xl flex w-full justify-between items-center font-bold">
           <div className='flex flex-col gap-3'>
@@ -142,13 +143,9 @@ const MyAssignments = ({ data, studentId, refreshData }) => {
         {data?.submitted_file && (
           <CardContent>
             <p className="text-sm font-medium text-gray-700">Submitted File:</p>
-            <a
-              href={`http://localhost:8000${data.submitted_file}`} // Prepend base URL
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline break-all"
-            >
-              {data.submitted_file || "View Submitted File"}
-            </a>
+            <Link href={`http://localhost:8000/${data.submitted_file}`} className="text-indigo-600 hover:underline ml-2">
+              {data.submitted_file.split("/").pop() || "View Submitted File"} 
+            </Link>
           </CardContent>
         )}
 

@@ -25,7 +25,7 @@ export default function EventTable() {
   return (
     <Card className="shadow-lg rounded-2xl p-4">
       <CardContent>
-        <h2 className="text-xl font-semibold mb-4">Upcoming Events</h2>
+        <h2 className="text-xl font-semibold mb-4">All Events</h2>
         <Table>
           <TableHeader>
             <TableRow>
@@ -50,7 +50,7 @@ export default function EventTable() {
                 <TableRow 
                   key={event.event_id} 
                   className="hover:bg-gray-100 cursor-pointer"
-                  onClick={() => router.push(`/student/${params.student_id}/extra-curricular/clubs/${event.club__club_id}`)}
+                  onClick={() => router.push(`${params.student_id}/extra-curricular/clubs/${event.club__club_id}/${event.event_id}`)}
                 >
                   <TableCell>{event.event_name}</TableCell>
                   <TableCell>{event.description}</TableCell>

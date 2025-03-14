@@ -119,7 +119,7 @@ const Page = () => {
             <EventTable />
           </div>
           <div className="col-span-2 md:col-span-2">
-            <Notifications />
+            {/* <Notifications /> */}
           </div>
         </div>
       </div>

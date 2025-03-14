@@ -89,7 +89,7 @@ export default function Header() {
   };
 
   return (
-    <div className="p-4 bg-slate-50 flex justify-between items-center border-b border-slate-200">
+    <div className="p-4 flex justify-between items-center border-b">
       <div className="flex items-center gap-2">
           <SidebarTrigger />
       </div>

@@ -1,3 +1,4 @@
+from collections import defaultdict
 import datetime
 import json
 from django.http import JsonResponse
@@ -5,8 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model,login,logout
 from rest_framework.parsers import JSONParser
-from .models import Assessment, Assignment, AssignmentSubmission, Chapter, Student, StudentMarks, Subject, Teacher, Topic,Course
-from .serializers import StudentMarksSerializer
+from .models import Alumni, Assessment, AssessmentType, Assignment, AssignmentSubmission, Chapter, Student, StudentMarks, Subject, Teacher, Topic,Course
 # from djangoapp.extracurricular.models import Club, ClubMembers, Event, EventParticipation
 import json
 import datetime
@@ -56,6 +56,13 @@ def api_login(request):
                 if teacher:
                     response_data["teacher_id"] = teacher.teacher_id
                     response_data["course_id"] = list(teacher.courses.values_list('course_id', flat=True))  # Fetch all course IDs
+                    response_data["designation"] = teacher.designation
+                    
+                alumni = Alumni.objects.filter(username=username).first()
+                if alumni:
+                    response_data["role"] = alumni.role
+                    response_data["alumni_id"] = alumni.alumni_id
+                    
 
                 return JsonResponse(response_data)
             else:
@@ -133,88 +140,15 @@ def post_assignment(request, teacher_id):
     
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-    
-def get_student_marks_by_assessment_id(request, assessment_id):
-    try:
-        # Fetch all student marks related to the given assessment_id
-        student_marks = StudentMarks.objects.filter(assessment_id=assessment_id).select_related("student", "assessment")
-
-        if not student_marks.exists():
-            return JsonResponse({"error": "No student marks found for this assessment"}, status=404)
-
-        # Dictionary to store student data
-        student_marks_data = {}
-
-        for mark in student_marks:
-            student_id = mark.student.student_id
-            student_name = f"{mark.student.first_name} {mark.student.last_name}"
-
-            # If student_id not already in dictionary, initialize entry
-            if student_id not in student_marks_data:
-                student_marks_data[student_id] = {
-                    "student_name": student_name,
-                    "marks": []
-                }
-
-            # Append marks obtained for this assessment
-            student_marks_data[student_id]["marks"].append({
-                "assessment_id": mark.assessment_id,
-                "marks_obtained": mark.marks_obtained,
-                "total_marks": mark.assessment.total_marks,
-                "subject_name": mark.assessment.subject.subject_name,
-                "subject_code": mark.assessment.subject.subject_code,
-                "assessment_type": mark.assessment.assessment_type,
-            })
-
-        # Convert dictionary to list format for JSON response
-        response_data = {
-            "assessment_id": assessment_id,
-            "students": list(student_marks_data.values())
-        }
-
-        return JsonResponse(response_data, safe=False)
-
-    except Assessment.DoesNotExist:
-        return JsonResponse({"error": "Assessment not found"}, status=404)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
+from django.apps import apps
 from django.db.models import Avg, Sum
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.views.decorators.http import require_POST
 
-@csrf_exempt
-def create_student_marks(request):
-    if request.method == 'POST':
-        try:
-            data = JSONParser().parse(request)
-            serializer = StudentMarksSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save()
-                return JsonResponse({'message': 'Student marks created successfully', 'data': serializer.data}, status=201)
-            return JsonResponse({'error': serializer.errors}, status=400)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
-
-@csrf_exempt
-def update_student_marks(request, student_marks_id):
-    if request.method == 'PUT':
-        try:
-            student_marks = StudentMarks.objects.get(pk=student_marks_id)
-            data = JSONParser().parse(request)
-            serializer = StudentMarksSerializer(student_marks, data=data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return JsonResponse({'message': 'Student marks updated successfully', 'data': serializer.data}, status=200)
-            return JsonResponse({'error': serializer.errors}, status=400)
-        except StudentMarks.DoesNotExist:
-            return JsonResponse({'error': 'StudentMarks not found'}, status=404)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
 def get_student_details(request, student_id):
     student = get_object_or_404(Student, pk=student_id)
     student_data = {
@@ -320,47 +254,6 @@ def get_chapters_by_topic(request, topic_id):
         "description": chapter.description
     } for chapter in chapters]
     return JsonResponse({"chapters": chapters_data})
-
-def get_assessments_and_marks_by_student(request, student_id):
-    # Get the student and their course & semester
-    student = get_object_or_404(Student, student_id=student_id)
-    course_id = student.course_id
-    semester_no = student.semester
-    assessments = Assessment.objects.filter(
-        subject__course_id=course_id,
-    ).select_related("subject")
-
-    # Fetch marks for the student related to assessments
-    student_marks = StudentMarks.objects.filter(student=student).select_related("assessment")
-
-    # Organize assessment data
-    assessments_data = [{
-        "assessment_id": assessment.assessment_id,
-        "assessment_name":assessment.assessment_name,
-        "assessment_type": assessment.assessment_type,
-        "total_marks": assessment.total_marks,
-        "date_conducted": assessment.date_conducted.strftime("%Y-%m-%d"),
-        "subject_name": assessment.subject.subject_name,
-        "subject_code": assessment.subject.subject_code,
-        "semester":assessment.semester
-    } for assessment in assessments]
-
-    # Organize marks data
-    marks_data = [{
-        "assessment_id": mark.assessment.assessment_id,
-        "assessment_type": mark.assessment.assessment_type,
-        "marks_obtained": mark.marks_obtained,
-        "total_marks": mark.assessment.total_marks
-    } for mark in student_marks]
-
-    return JsonResponse({
-        "student_id": student_id,
-        "student_name": f"{student.first_name} {student.last_name}",
-        "course_name": student.course.course_name,
-        "semester": semester_no,
-        "assessments": assessments_data,
-        "marks": marks_data
-    })
     
 @csrf_exempt
 def get_assignment_submissions(request, course_id):
@@ -547,35 +440,61 @@ def mark_attendance(request):
 
     try:
         data = JSONParser().parse(request)
-        student_id = data.get("student_id")
-        subject_id = data.get("subject_id")
-        date = data.get("date")
-        status = data.get("status")  # Present, Absent, Late
 
-        if not all([student_id, subject_id, date, status]):
-            return JsonResponse({"error": "All fields are required"}, status=400)
+        # Ensure the received data is a list (bulk attendance submission)
+        if not isinstance(data, list):
+            return JsonResponse({"error": "Invalid data format. Expected a list."}, status=400)
 
-        student = Student.objects.get(pk=student_id)
-        subject = Subject.objects.get(pk=subject_id)
+        attendance_records = []
 
-        attendance, created = Attendance.objects.update_or_create(
-            student=student,
-            subject=subject,
-            date=date,
-            defaults={"status": status}
-        )
+        with transaction.atomic():
+            for record in data:
+                student_id = record.get("student_id")
+                subject_id = record.get("subject_id")
+                course_id = record.get("course_id")
+                teacher_id = record.get("teacher_id")
+                date = record.get("date")
+                hour = record.get("hour")
+                status = record.get("status")  # Present, Absent
+
+                if not all([student_id, subject_id, course_id, teacher_id, date, hour, status]):
+                    return JsonResponse({"error": "All fields are required"}, status=400)
+
+                try:
+                    student = Student.objects.get(pk=student_id)
+                    subject = Subject.objects.get(pk=subject_id)
+                    course = Course.objects.get(pk=course_id)
+                    teacher = Teacher.objects.get(pk=teacher_id)
+
+                    attendance, created = Attendance.objects.update_or_create(
+                        student=student,
+                        subject=subject,
+                        course=course,
+                        teacher=teacher,
+                        date=date,
+                        hour=hour,
+                        defaults={"status": status}
+                    )
+
+                    attendance_records.append({
+                        "attendance_id": attendance.id,
+                        "student_id": student_id,
+                        "subject_id": subject_id,
+                        "course_id": course_id,
+                        "teacher_id": teacher_id,
+                        "date": date,
+                        "hour": hour,
+                        "status": attendance.status,
+                    })
+
+                except ObjectDoesNotExist as e:
+                    return JsonResponse({"error": str(e)}, status=404)
 
         return JsonResponse({
             "message": "Attendance marked successfully",
-            "attendance_id": attendance.attendance_id,
-            "status": attendance.status,
-            "date": attendance.date.strftime("%Y-%m-%d"),
+            "records": attendance_records
         }, status=201)
 
-    except Student.DoesNotExist:
-        return JsonResponse({"error": "Student not found"}, status=404)
-    except Subject.DoesNotExist:
-        return JsonResponse({"error": "Subject not found"}, status=404)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
@@ -609,11 +528,12 @@ def get_attendance_by_student(request, student_id):
 
         attendance_data = [
             {
-                "attendance_id": record.attendance_id,
+                # "attendance_id": record.attendance_id,
                 "subject_name": record.subject.subject_name,
                 "subject_code": record.subject.subject_code,
                 "date": record.date.strftime("%Y-%m-%d"),
                 "status": record.status,
+                "hour":record.hour
             }
             for record in attendance_records
         ]
@@ -678,35 +598,40 @@ def get_attendance_summary(request, student_id):
         })
 
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)  # ✅ Fixed
-    
+         return JsonResponse({"error": str(e)}, status=500)  # ✅ Fixed
+   
 def get_attendance_by_course(request, course_id):
     try:
         course = get_object_or_404(Course, pk=course_id)
         subjects = Subject.objects.filter(course=course)
         attendance_records = Attendance.objects.filter(subject__in=subjects).select_related("student", "subject")
 
+        student_attendance = defaultdict(lambda: {"present": 0, "total": 0})
+
+        for record in attendance_records:
+            student_attendance[record.student.student_id]["total"] += 1  # Count total hours
+            if record.status == "Present":
+                student_attendance[record.student.student_id]["present"] += 1  # Count present hours
+
         attendance_data = [
             {
-                "attendance_id": record.attendance_id,
-                "student_id": record.student.student_id,
+                "student_id": student_id,
                 "student_name": f"{record.student.first_name} {record.student.last_name}",
-                "subject_name": record.subject.subject_name,
-                "date": record.date.strftime("%Y-%m-%d"),
-                "status": record.status,
+                "present_hours": data["present"],
+                "total_hours": data["total"],
+                "attendance_percentage": round((data["present"] / data["total"]) * 100, 2) if data["total"] > 0 else 0
             }
-            for record in attendance_records
+            for student_id, data in student_attendance.items()
         ]
 
         return JsonResponse({
             "course_id": course_id,
             "course_name": course.course_name,
-            "attendance": attendance_data,
+            "attendance_summary": attendance_data,
         })
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-
 @csrf_exempt
 def get_teacher(request, teacher_id):
     if request.method == "GET":
@@ -849,92 +774,6 @@ def get_assignments(request, teacher_id):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-    
-def get_all_assessments(request, teacher_id):
-    try:
-        # Fetch all subjects taught by the teacher
-        subjects = Subject.objects.filter(teacher_id=teacher_id)
-
-        # Fetch all assessments related to those subjects
-        assessments = Assessment.objects.filter(subject__in=subjects).select_related("subject")
-
-        # Prepare response data
-        assessments_data = []
-        for assessment in assessments:
-            # Get marks for each assessment
-            marks = StudentMarks.objects.filter(assessment=assessment).select_related("student")
-            marks_data = [
-                {
-                    "student_id": mark.student.student_id,
-                    "student_name": f"{mark.student.first_name} {mark.student.last_name}",
-                    "marks_obtained": mark.marks_obtained
-                }
-                for mark in marks
-            ]
-
-            # Get course_id associated with the subject
-            course_id = Course.objects.filter(subjects=assessment.subject).values_list("course_id", flat=True).first()
-
-            assessments_data.append({
-                "assessment_id": assessment.assessment_id,
-                "assessment_type": assessment.assessment_type,
-                "total_marks": assessment.total_marks,
-                "date_conducted": assessment.date_conducted.strftime("%Y-%m-%d"),
-                "subject_id": assessment.subject.subject_id,
-                "subject_name": assessment.subject.subject_name,
-                "subject_code": assessment.subject.subject_code,
-                "marks": marks_data,
-                "course_id": course_id  # ✅ Now correctly fetched
-            })
-
-        return JsonResponse({"assessments": assessments_data}, safe=False)
-
-    except ObjectDoesNotExist:
-        return JsonResponse({"error": "Teacher not found"}, status=404)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-    
-@csrf_exempt  # Disable CSRF for testing (use proper authentication in production)
-def create_assessment(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            teacher_id = data.get("teacher_id")
-            subject_id = data.get("subject_id")
-            assessment_type = data.get("assessment_type")
-            total_marks = data.get("total_marks")
-            date_conducted = data.get("date_conducted")
-
-            # Validate teacher ownership of the subject
-            subject = Subject.objects.filter(subject_id=subject_id, teacher_id=teacher_id).first()
-            if not subject:
-                return JsonResponse({"error": "Unauthorized or invalid subject"}, status=403)
-
-            # Create assessment
-            assessment = Assessment.objects.create(
-                subject=subject,
-                assessment_type=assessment_type,
-                total_marks=total_marks,
-                date_conducted=date_conducted
-            )
-
-            # Fetch all students enrolled in the subject's course
-            students = Student.objects.filter(course=subject.course)
-
-            # Create blank marks for each student
-            for student in students:
-                StudentMarks.objects.create(
-                    assessment=assessment,
-                    student=student,
-                    marks_obtained=None  # No marks yet
-                )
-
-            return JsonResponse({"message": "Assessment created successfully, student marks initialized", "assessment_id": assessment.assessment_id}, status=201)
-
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON data"}, status=400)
-
-    return JsonResponse({"error": "Method not allowed"}, status=405)
 
 def get_students_by_subject(request, subject_id):
     try:
@@ -991,20 +830,75 @@ def get_or_update_student_marks(request, assessment_id):
         return JsonResponse({"error": "Assessment not found"}, status=404)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
- 
-def get_all_students(request):
-    students = Student.objects.select_related("course").all().values(
-        "student_id", "username", "phone_number", "date_of_birth", 
-        "enrollment_number", "course__course_name", "year_of_study", "semester"
-    )
-    return JsonResponse(list(students), safe=False)
+def get_all_students(request, teacher_id):
+    try:
+        teacher = Teacher.objects.get(teacher_id=teacher_id)
+        courses = list(teacher.courses.values("course_id", "course_name"))
+        
+        if not courses:
+            return JsonResponse({"error": "No courses found for this teacher"}, status=404)
 
+        course_ids = [course["course_id"] for course in courses]
+        students = list(Student.objects.filter(course_id__in=course_ids).values(
+            "student_id", "username", "phone_number", "date_of_birth",
+            "enrollment_number", "course__course_name", "year_of_study", "semester"
+        ))
 
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
-from django.db.models import Avg
-from django.urls import path
-from .models import Student, Assessment, StudentMarks, AssessmentType
+        subjects = list(Subject.objects.filter(course_id__in=course_ids, teacher=teacher).values("subject_id", "subject_name"))
+
+        return JsonResponse({"courses": courses, "subjects": subjects, "students": students}, safe=False)
+
+    except Teacher.DoesNotExist:
+        return JsonResponse({"error": "Teacher not found"}, status=404)  
+      
+from .models import Alumni
+
+@csrf_exempt
+def update_student_semesters(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            course_id = data.get("course_id")
+
+            if not course_id:
+                return JsonResponse({"error": "Course ID is required"}, status=400)
+
+            course = get_object_or_404(Course, course_id=course_id)
+            students = Student.objects.filter(course=course)
+
+            updated_count = 0
+            removed_count = 0
+
+            for student in students:
+                if student.semester < student.course.total_semesters:
+                    student.semester += 1
+                    student.save()
+                    updated_count += 1
+                else:
+                    # Create a new Alumni record using existing student data
+                    Alumni.objects.create(
+                        username=student.username+'_alumni',  # Inherited from User
+                        first_name=student.first_name,
+                        last_name=student.last_name,
+                        email=student.email,
+                        role="ALUMNI",
+                        password=student.password,
+                        graduation_year=student.year_of_study,
+                        phone_number=getattr(student, "phone_number", None),
+                        # course_completed=True
+                    )
+                    # student.delete()  # Remove student after successful transfer
+                    removed_count += 1
+
+            return JsonResponse(
+                {"message": f"Updated {updated_count} students. Moved {removed_count} to Alumni."}
+            )
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
 
 def calculate_gpa(marks, total_marks):
     if total_marks == 0:
