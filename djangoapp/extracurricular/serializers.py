@@ -1,5 +1,5 @@
 from curricular.models import Assignment, Attendance, Student, StudentMarks
-from extracurricular.models import Club, ClubMembers, Event
+from extracurricular.models import Club, ClubMembers, Event, EventPoster
 from rest_framework import serializers
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -51,3 +51,11 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = '__all__'
+
+
+
+class EventPosterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventPoster
+        fields = ['poster_id', 'event', 'poster_image', 'location', 'time']
+

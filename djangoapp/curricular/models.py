@@ -71,6 +71,13 @@ class Course(models.Model):
     credits = models.IntegerField()
     total_semesters = models.IntegerField(default=6)  # Default semester count
 
+    year = models.IntegerField()  # Added Year field
+    class_teacher = models.ForeignKey(
+        'Teacher',  # Links to Teacher model
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='class_courses'  # For tracking class teacher role
+    )    
     def __str__(self):
         return self.course_name
 
