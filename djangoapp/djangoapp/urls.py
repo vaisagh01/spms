@@ -30,5 +30,6 @@ urlpatterns = [
     path('alumni/', include('alumni.urls')),
     path('notification/', include('notifications.urls')),
     path('noti/', include('noti.urls')),
+    path('profilepage/', include('profilepage.urls')),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
