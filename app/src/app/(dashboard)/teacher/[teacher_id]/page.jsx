@@ -1,16 +1,20 @@
+'use client'
 import { Card, CardContent } from "@/components/ui/card";
-import { Home } from "lucide-react";
+import { Building2, Home } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
 const TeacherNav = ({ teacher_id }) => {
+  const params = useParams()
   const data = {
     home: [
       { title: "Home", url: `/teacher/1`, icon: Home },
-      { title: "Manage Students", url: `/teacher/1/managestudents`, icon: Home },
-      { title: "Manage Subjects", url: `/teacher/1/managesubjects`, icon: Home },
-      { title: "Manage Assignments", url: `/teacher/1/assignments`, icon: Home },
-      { title: "Manage Assessments", url: `/teacher/1/assessments`, icon: Home },
-      { title: "Send Notifications", url: `/teacher/1/notifications`, icon: Home },
+      // { title: "Department", url: `/teacher/${params.teacher_id}/department`, icon: Building2 },
+      { title: "Manage Students", url: `/teacher/${params.teacher_id}/managestudents`, icon: Home },
+      { title: "Manage Subjects", url: `/teacher/${params.teacher_id}/managesubjects`, icon: Home },
+      { title: "Manage Assignments", url: `/teacher/${params.teacher_id}/assignments`, icon: Home },
+      { title: "Manage Assessments", url: `/teacher/${params.teacher_id}/assessments`, icon: Home },
+      { title: "Send Notifications", url: `/teacher/${params.teacher_id}/notifications`, icon: Home },
     ],
   };
 

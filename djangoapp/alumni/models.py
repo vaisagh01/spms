@@ -1,27 +1,25 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import date
-from django.conf import settings
-from django.conf import settings
 from django.db import models
+from curricular.models import Alumni, Department
+# class Alumni(models.Model):
+#     user = models.OneToOneField(
+#         settings.AUTH_USER_MODEL, 
+#         on_delete=models.CASCADE, 
+#         related_name="alumni_profile"  # Add a unique related_name
+#     )
+#     graduation_year = models.IntegerField()
+#     course_completed = models.BooleanField(default=False)
+#     convocation_date = models.DateField(null=True, blank=True)
 
-class Alumni(models.Model):
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, 
-        related_name="alumni_profile"  # Add a unique related_name
-    )
-    graduation_year = models.IntegerField()
-    course_completed = models.BooleanField(default=False)
-    convocation_date = models.DateField(null=True, blank=True)
+#     def save(self, *args, **kwargs):
+#         if self.course_completed:
+#             self.user.is_active = False  # Disable normal student login
+#         super().save(*args, **kwargs)
 
-    def save(self, *args, **kwargs):
-        if self.course_completed:
-            self.user.is_active = False  # Disable normal student login
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.user.username} ({self.graduation_year})"
+#     def __str__(self):
+#         return f"{self.user.username} ({self.graduation_year})"
 
 class AlumniEvent(models.Model):
     title = models.CharField(max_length=255)
@@ -33,6 +31,7 @@ class AlumniEvent(models.Model):
         ('Talk', 'Talk'),
         ('Other', 'Other')
     ])
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="alumni_events")
 
     def __str__(self):
         return self.title

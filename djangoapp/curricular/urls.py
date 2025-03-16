@@ -1,6 +1,6 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from .views import get_assignments, edit_subject, edit_topic, get_teacher, api_login,api_logout,create_student_marks, get_assessments_and_marks_by_student, get_assignments_by_student, get_attendance_by_course, get_chapters_by_topic, get_student_marks_by_assessment_id, get_subjects_by_student, get_student_details, get_teacher_subjects, get_topics_by_subject, post_assignment, update_assignment, update_student_marks,get_assignment_submissions,upload_assignment_submission # Add this import statement
+from .views import get_assignments, edit_subject, edit_topic, get_assignments_by_student, get_teacher, api_login,api_logout, get_attendance_by_course, get_chapters_by_topic,  get_subjects_by_student, get_student_details, get_teacher_subjects, get_topics_by_subject, post_assignment, update_assignment,get_assignment_submissions, update_student_semesters,upload_assignment_submission # Add this import statement
 from . import views
 router = DefaultRouter()
 
@@ -11,14 +11,13 @@ urlpatterns = [
     path('logout/', api_logout, name='api_logout'),
     # Student-related URLs
     
-    path('students/', views.get_all_students, name='get_all_student'),
+    path("update_semesters/", update_student_semesters, name="update_student_semesters"),
+
+    
+    path('students/<int:teacher_id>/', views.get_all_students, name='get_all_student'),
     path('student/<int:student_id>/', get_student_details, name='get_student_details'),
     path('subjects/student/<int:student_id>/', get_subjects_by_student, name='get_subjects_by_student'),
     path('assignments/student/<int:student_id>/', get_assignments_by_student, name='get_assignments_by_student'),
-    path('student/<int:student_id>/assignments-marks/', get_assessments_and_marks_by_student, name='student_assignments_marks'),
-    path('get_student_marks_by_assessment_id/<int:assessment_id>/', get_student_marks_by_assessment_id, name='get_student_marks'),
-    path('create_student_marks/', create_student_marks, name='create_student_marks'),
-    path('update_student_marks/<int:student_marks_id>/', update_student_marks, name='update_student_marks'),
 
     # Curricular-related URLs
     path('topics/subject/<int:subject_id>/', get_topics_by_subject, name='get_topics_by_subject'),
@@ -47,8 +46,6 @@ urlpatterns = [
     path("assignments/delete/<int:assignment_id>/", views.delete_assignment, name="delete-assignment"),
     path("assignments/<int:assignment_id>/submissions/", views.get_submissions, name="get_assignment_submissions"),
     
-    path("assessments/create/", views.create_assessment, name="create_assessment"),
-    path("assessments/<int:teacher_id>/", views.get_all_assessments, name="get_all_assessments"),
     path("students/<int:subject_id>/", views.get_students_by_subject, name="get_students_by_subject"),
     path("assessment/<int:assessment_id>/marks/", views.get_or_update_student_marks, name="get_or_update_student_marks"),
     

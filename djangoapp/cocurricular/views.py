@@ -58,17 +58,19 @@ def get_pending_internships(request):
 def approve_internship(request, student_id, internship_id, teacher_id):
     student = get_object_or_404(Student, student_id=student_id)
     teacher = get_object_or_404(Teacher, teacher_id=teacher_id)
-
+    print(student, teacher)
     # Check if the teacher is assigned to the student's course
     if student.course.class_teacher != teacher:
         return JsonResponse({"error": "You are not the assigned class teacher!"}, status=403)
 
-    internship = get_object_or_404(Internship, id=internship_id, student_id=student_id)
+    internship = get_object_or_404(Internship, id=internship_id)
+    print(internship)
     internship.status = "Approved"
     internship.assigned_teacher = teacher
     internship.save()
 
     return JsonResponse({"message": "Internship approved successfully."})
+
 @csrf_exempt
 @api_view(['POST'])
 def reject_internship(request, student_id, internship_id):

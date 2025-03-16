@@ -11,7 +11,7 @@ import {
 export function AppSidebar({data, ...props}) {
 
   return (
-    (<Sidebar collapsible="icon" {...props}>
+    (<Sidebar className="" collapsible="icon" {...props}>
       <SidebarHeader></SidebarHeader>
       <SidebarFooter>
         <NavUser user={data.user} />

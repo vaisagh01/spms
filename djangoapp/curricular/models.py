@@ -3,6 +3,8 @@ from django.contrib.auth.models import BaseUserManager, AbstractUser
 from django.forms import ValidationError
 from django.utils.timezone import now
 from django.db import models
+from django.apps import apps  # Import for cross-app relations
+
 
 SEMESTER_CHOICES = [
     (1, "Semester 1"),
@@ -28,6 +30,7 @@ class User(AbstractUser):
             self.role = self.Role.STUDENT
         return super().save(*args, **kwargs)
     
+
 class StudentManager(BaseUserManager):
     def query_set(self, args, **kwargs):
         results=super().query_set(*args, **kwargs)
@@ -51,12 +54,22 @@ class StudentManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
 
         return self.create_user(username, email, password,date_of_birth, **extra_fields)
-   
+    
+class Department(models.Model):
+    dept_id = models.AutoField(primary_key=True)
+    dept_name = models.CharField(max_length=255, unique=True)
+    description = models.TextField()
+    hod = models.OneToOneField('Teacher', on_delete=models.SET_NULL, null=True, blank=True, related_name="head_of_department")
+
+    def __str__(self):
+        return self.dept_name
+
 class Course(models.Model):
     course_id = models.AutoField(primary_key=True)
     course_name = models.CharField(max_length=255)
-    department = models.CharField(max_length=255)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="courses")
     credits = models.IntegerField()
+    total_semesters = models.IntegerField(default=6)  # Default semester count
     year = models.IntegerField()  # Added Year field
     class_teacher = models.ForeignKey(
         'Teacher',  # Links to Teacher model
@@ -66,24 +79,62 @@ class Course(models.Model):
     )    
     def __str__(self):
         return self.course_name
+
+
+class Teacher(User):
+    class Designation(models.TextChoices):
+        HOD = "HOD", "Head of Department"
+        ASSISTANT_PROFESSOR = "Assistant Professor", "Assistant Professor"
+        ASSOCIATE_PROFESSOR = "Associate Professor", "Associate Professor"
+        PROFESSOR = "Professor", "Professor"
+        DOCTOR = "Doctor", "Doctor"
+        LECTURER = "Lecturer", "Lecturer"
+
+    base_role = User.Role.TEACHER
+    teacher_id = models.AutoField(primary_key=True)
+    phone_number = models.CharField(max_length=15)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="teachers")
+    designation = models.CharField(max_length=50, choices=Designation.choices)
+    hire_date = models.DateField()
+    courses = models.ManyToManyField(Course, related_name="teachers", blank=True)
+
+    class Meta:
+        verbose_name = 'Teacher'
+        verbose_name_plural = 'Teachers'
+
+    def __str__(self):
+        return self.username
     
 class Student(User):
     base_role = User.Role.STUDENT
-    objects=StudentManager()
+    objects = StudentManager()
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="student")  # Add department
     student_id = models.AutoField(primary_key=True) 
-    # username = models.CharField(max_length=100)
-   # Primary Key
-    phone_number = models.CharField(max_length=15, blank=True, null=True)  # Optional field
-    date_of_birth = models.DateField(null=True, blank=True)  # Allow null values
-    enrollment_number = models.CharField(max_length=20, unique=True)  # Unique enrollment number
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, default=1)  # Course name
-    year_of_study = models.IntegerField(null=True, blank=True)  # Year of study (e.g., 1, 2, 3, 4)
-    semester = models.IntegerField(choices=SEMESTER_CHOICES, default=1) 
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    enrollment_number = models.CharField(max_length=20, unique=True)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, default=1)
+    year_of_study = models.IntegerField(null=True, blank=True)
+    semester = models.IntegerField(default=6)
 
     class Meta:
         verbose_name = 'Student'
         verbose_name_plural = 'Students'
 
+    def save(self, *args, **kwargs):
+        """
+        Automatically move student to alumni if semester exceeds the course's total semesters.
+        """
+        if self.semester > self.course.total_semesters:
+            Alumni = apps.get_model('alumni', 'Alumni')  # Get Alumni model dynamically
+            Alumni.objects.create(
+                user=self,
+                graduation_year=self.year_of_study,  # Assuming last year of study as graduation year
+                course_completed=True
+            )
+            self.delete()  # Remove student entry
+        else:
+            super().save(*args, **kwargs)
 
 class TeacherManager(BaseUserManager):
     def get_queryset(self):
@@ -132,51 +183,17 @@ class AlumniManager(BaseUserManager):
         return self.create_user(username, email, password, **extra_fields)
 
 class Alumni(User):
-    # username = models.CharField(max_length=100)
     base_role = User.Role.ALUMNI
     alumni_id = models.AutoField(primary_key=True)
-    graduation_year = models.IntegerField()  # Year of graduation
+    graduation_year = models.IntegerField()
     current_job = models.CharField(max_length=255, blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="alumni")  # Add department
     objects = AlumniManager()
 
     class Meta:
         verbose_name = "Alumni"
         verbose_name_plural = "Alumni"
-
-class Teacher(User):
-    base_role = User.Role.TEACHER
-    teacher_id = models.AutoField(primary_key=True)
-    phone_number = models.CharField(max_length=15)
-    department = models.CharField(max_length=255)
-    designation = models.CharField(max_length=255)
-    hire_date = models.DateField()
-    # Change to ManyToManyField to allow multiple courses
-    courses = models.ManyToManyField('Course', related_name="teachers", blank=True)
-    objects=StudentManager()
-    
-    class Meta:
-        verbose_name = 'Teacher'
-        verbose_name_plural = 'Teachers'
-
-
-    
-class Attendance(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="attendance_records")
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True,default=1) 
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name="marked_attendance",default=1)  # Teacher marking attendance
-    date = models.DateField(default=now)
-    
-    HOUR_CHOICES = [
-        (1, "9-10"), (2, "10-11"), (3, "11-12"),
-        (4, "12-1"), (5, "2-3"), (6, "3-4"), (7, "4-5")
-    ]
-    hour = models.IntegerField(choices=HOUR_CHOICES,null=True, blank=True,default=1)
-    
-    status = models.CharField(max_length=10, choices=[("Present", "Present"), ("Absent", "Absent")], default="Present")
-
-    def __str__(self):
-        return f"{self.student.username} - {self.course} - {self.date} - {self.get_hour_display()} - {self.status} ({self.teacher.username})"
 
 class Subject(models.Model):
     subject_id = models.AutoField(primary_key=True)
@@ -292,3 +309,23 @@ class Semester(models.Model):
 
     def __str__(self):
         return f"Semester {self.semester_no}"
+
+class Attendance(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="attendance_records")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True, default=1)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name="marked_attendance", default=1)
+    date = models.DateField(default=now)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+
+    HOUR_CHOICES = [
+        (1, "9-10"), (2, "10-11"), (3, "11-12"),
+        (4, "12-1"), (5, "2-3"), (6, "3-4"), (7, "4-5")
+    ]
+    hour = models.IntegerField(choices=HOUR_CHOICES, null=True, blank=True, default=1)
+    status = models.CharField(max_length=10, choices=[("Present", "Present"), ("Absent", "Absent")], default="Present")
+
+    class Meta:
+        unique_together = ('student', 'date', 'hour')  # ✅ Ensures only one subject per hour
+
+    def __str__(self):
+        return f"{self.student.username} - {self.course} - {self.date} - {self.get_hour_display()} - {self.status} ({self.teacher.username})"

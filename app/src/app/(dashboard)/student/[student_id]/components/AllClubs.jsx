@@ -33,7 +33,7 @@ function StudentClubs() {
   });
 
   return (
-    <Card>
+    <Card className="border-2 border-slate-300" >
       <CardHeader>
         <CardTitle>Clubs & Events</CardTitle>
         <CardDescription>View the clubs and events you are part of.</CardDescription>
@@ -55,7 +55,7 @@ function StudentClubs() {
         {/* Display Clubs and Latest Event */}
         <div className="overflow-x-auto mt-4">
           <table className="min-w-full table-auto">
-            <thead className="bg-gray-100">
+            <thead className="">
               <tr>
                 <th className="px-4 text-start py-2">Club</th>
                 <th className="px-4 text-start py-2">Event</th>
@@ -80,7 +80,7 @@ function StudentClubs() {
                       {/* <td className="px-4 py-2">{club.club_description}</td> */}
                       <td className="px-4 py-2">
                         {latestEvent ? (
-                          <Link href={`/events/${latestEvent.event_id}`} className="text-blue-500 hover:underline">
+                          <Link href={`${params.student_id}/extra-curricular/clubs/${club.club_id}/${latestEvent.event_id}`} className="text-blue-500 hover:underline">
                             {latestEvent.event_name}
                           </Link>
                         ) : (

@@ -17,7 +17,7 @@ const Calendar = () => {
   const [selectedEvents, setSelectedEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const params = useParams();
-  const API_BASE_URL = "http://localhost:8000/curricular";
+  const API_BASE_URL = "http://localhost:8000/";
 
   useEffect(() => {
     const id = params.student_id;
@@ -30,7 +30,7 @@ const Calendar = () => {
         const now = new Date();
 
         // Fetch assignments
-        const assignmentsRes = await axios.get(`${API_BASE_URL}/assignments/student/${id}/`);
+        const assignmentsRes = await axios.get(`${API_BASE_URL}curricular/assignments/student/${id}/`);
         const assignmentEvents = assignmentsRes.data.assignments
           .map((assignment) => ({
             title: `${assignment.title} (Assignment)`,
@@ -45,7 +45,7 @@ const Calendar = () => {
           .filter((event) => new Date(event.start) >= now);
 
         // Fetch assessments
-        const assessmentsRes = await axios.get(`${API_BASE_URL}/student/${id}/assignments-marks/`);
+        const assessmentsRes = await axios.get(`${API_BASE_URL}assessments/student/${id}/assignments-marks/`);
         const assessmentEvents = assessmentsRes.data.assessments
           .map((assessment) => ({
             title: `${assessment.assessment_type} (Assessment)`,
@@ -84,7 +84,7 @@ const Calendar = () => {
 
   return (
     <div>
-      <Card className="p-5">
+      <Card className="p-5 border-2 border-slate-300">
         <CardContent>
           <div className="flex flex-col md:flex-row w-full justify-start items-start gap-8">
             <ScrollArea className="h-[350px] rounded-md border p-4">
@@ -120,7 +120,7 @@ const Calendar = () => {
               <FullCalendar
                 height="360px"
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                headerToolbar={{ left: "", center: "title", right: "prev,next today" }}
+                headerToolbar={{ left: "", center: "title", right: "" }}
                 initialView="dayGridMonth"
                 selectable
                 select={handleDateClick}
