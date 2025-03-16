@@ -9,7 +9,6 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
-
 export default function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -50,27 +49,38 @@ export default function LoginPage() {
             if (data.role === "STUDENT" && data.student_id) router.push(`/student/${data.student_id}`);
             else if (data.role === "TEACHER" && data.teacher_id) router.push(`/teacher/${data.teacher_id}`);
             else if (data.role === "ALUMNI" && data.alumni_id) router.push(`/alumni/${data.alumni_id}`);
-            else setError("Unauthorized role or missing ID");
+            else{
+                toast({
+                    title: "Scheduled: Catch up",
+                    description: "Friday, February 10, 2023 at 5:57 PM",
+                  })
+            };
         } catch (err) {
             setError(err.response?.data?.error || "Login failed");
         }
     };
 
     return (
-        <div className="flex h-screen overflow-hidden bg-indigo-600">
+        <div className="flex h-screen overflow-hidden bg-[url('/landingbg2.webp')] bg-cover">
             {/* Left Side - App Info */}
             <motion.div 
                 initial={{ width: "100%" }}
                 animate={{ width: showLogin ? "50%" : "100%" }}
                 transition={{ duration: 0.5 }}
-                className="bg-indigo-600 text-white flex flex-col justify-center items-center p-10"
+                className="text-slate-600 flex flex-col justify-center items-center p-10"
             >
-                <h1 className="text-4xl font-bold text-ceter">Welcome to UNIVERSE</h1>
-                <p className="mt-4 text-lg text-center">Manage curricular, co-curricular,extracurricular and alumni activities all in one place.</p>
+                <div className="flex items-center gap-4">
+                <img src="/1png.png" className="w-20" alt="" />
+                <img src="/22png.png" className="h-14" alt="" />
+                </div>
+
+                {/* <h1 className="text-4xl font-bold text-ceter">Welcome</h1> */}
+
+                {/* <p className="mt-4 text-xl text-center">Manage curricular, co-curricular,extracurricular and alumni activities all in one place.</p> */}
                 {!showLogin && (
                     <Button 
                         onClick={() => setShowLogin(true)} 
-                        className="mt-6 bg-white text-indigo-600 font-semibold hover:bg-gray-200 transition"
+                        className="mt-6 p-5 bg-amber-400 text-amber-100 font-semibold hover:bg-amber-500 transition"
                     >
                         Login
                     </Button>
@@ -85,13 +95,14 @@ export default function LoginPage() {
                         animate={{ x: 0 }}
                         exit={{ x: "100%" }}
                         transition={{ type: "spring", stiffness: 150, damping: 20 }}
-                        className="flex-grow flex justify-center items-center bg-indigo-600 text-white"
+                        className="flex-grow flex justify-center items-center backdrop-blur-sm border-l-2 border-slate-300 text-white"
                     >
-                        <Card className="w-full max-w-sm p-6 bg-indigo-500 text-white shadow-xl">
+                        <Card className="w-full max-w-sm p-6 shadow-xl">
                             <CardHeader>
-                                <CardTitle className="text-center text-2xl">Login</CardTitle>
+                                <CardTitle className="text-2xl pb-3 border-b-2 border-slate-300">Login to Continue</CardTitle>
                             </CardHeader>
                             <CardContent>
+
                                 {error && (
                                     <Alert variant="destructive" className="mb-4 bg-red-500 text-white">
                                         <AlertTitle>Error</AlertTitle>

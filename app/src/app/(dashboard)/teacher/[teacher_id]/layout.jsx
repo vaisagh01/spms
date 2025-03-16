@@ -101,7 +101,7 @@ export default function StudentLayout({ children }) {
   }
 
   return (
-    <div>
+    <div className="">
       <SidebarProvider>
         <AppSidebar data={data} />
         <SidebarInset>

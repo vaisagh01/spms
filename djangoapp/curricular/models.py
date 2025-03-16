@@ -70,7 +70,6 @@ class Course(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="courses")
     credits = models.IntegerField()
     total_semesters = models.IntegerField(default=6)  # Default semester count
-
     year = models.IntegerField()  # Added Year field
     class_teacher = models.ForeignKey(
         'Teacher',  # Links to Teacher model
