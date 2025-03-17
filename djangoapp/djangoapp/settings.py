@@ -59,7 +59,7 @@ INSTALLED_APPS = [
     'profilepage',
     'assessments',
     'assignments',
-    'cocurricular'
+    'cocurricular',
 ]
 
 MIDDLEWARE = [
