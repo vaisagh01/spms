@@ -19,7 +19,7 @@ class Internship(models.Model):
         ('Rejected', 'Rejected'),
     ]
 
-    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="intern")
     company_name = models.CharField(max_length=255)
     position = models.CharField(max_length=255)
     start_date = models.DateField()
@@ -55,15 +55,16 @@ class Internship(models.Model):
         return f"{self.company_name} - {self.position} ({self.student.username}) - {self.status}"
 
 class Project(models.Model):
-    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="proj")
     title = models.CharField(max_length=255)
     description = models.TextField()
     start_date = models.DateField()
     end_date = models.DateField()
+    link = models.URLField(blank=True, null=True)
+    document = models.FileField(upload_to='project_documents/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.title} ({self.student.username})"
-
 class Certification(models.Model):
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)  

@@ -56,7 +56,12 @@ INSTALLED_APPS = [
     'djangoapp',
     'alumni',
     'noti',
+<<<<<<< HEAD
     'profilepage',
+=======
+    'resume',
+    'profilepage'
+>>>>>>> 4cce278e65cb21c87df5f9e5491a1849cc609e1b
     'assessments',
     'assignments',
     'cocurricular',

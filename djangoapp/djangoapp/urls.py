@@ -19,7 +19,7 @@ from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
-
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,6 +31,11 @@ urlpatterns = [
     path('alumni/', include('alumni.urls')),
     path('notification/', include('notifications.urls')),
     path('noti/', include('noti.urls')),
+<<<<<<< HEAD
+    path('resume/', include('resume.urls')),
+
+=======
     path('profilepage/', include('profilepage.urls')),
+>>>>>>> 4869833ecb786a5300c15373d9243aea5459178f
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

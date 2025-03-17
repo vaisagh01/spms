@@ -2,11 +2,17 @@ from rest_framework import serializers
 from .models import Internship, Project, Teacher, Certification, CoCurricularEvent, CoCurricularEventParticipation
 
 class InternshipSerializer(serializers.ModelSerializer):
+    assigned_teacher_name = serializers.CharField(source='teacher.username', read_only=True)
+    student_username = serializers.CharField(source='student.username', read_only=True)
+
     class Meta:
         model = Internship
         fields = '__all__'
 
-
+    def get_certificate_url(self, obj):
+            if obj.certificate:
+                return obj.certificate.url
+            return None
     def validate(self, data):
         """Custom validation for internship dates"""
         if data['start_date'] >= data['end_date']:

@@ -110,6 +110,24 @@ class Student(User):
     objects = StudentManager()
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="student")  # Add department
     student_id = models.AutoField(primary_key=True) 
+    # username = models.CharField(max_length=100)
+   # Primary Key
+    phone_number = models.CharField(max_length=15, blank=True, null=True)  # Optional field
+    date_of_birth = models.DateField(null=True, blank=True)  # Allow null values
+    enrollment_number = models.CharField(max_length=20, unique=True)  # Unique enrollment number
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, default=1)  # Course name
+    year_of_study = models.IntegerField(null=True, blank=True)  # Year of study (e.g., 1, 2, 3, 4)
+    semester = models.IntegerField(choices=SEMESTER_CHOICES, default=1) 
+    #email = models.EmailField(unique=True)
+    
+    address = models.CharField(max_length=255, null=True, blank=True)
+
+    linkedin = models.URLField(blank=True, null=True)
+
+    career_objective = models.TextField(blank=True, null=True)
+    hard_skills = models.TextField(help_text="Comma-separated skills",blank=True, null=True)
+    soft_skills = models.TextField(help_text="Comma-separated skills",blank=True, null=True)
+
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     date_of_birth = models.DateField(null=True, blank=True)
     enrollment_number = models.CharField(max_length=20, unique=True)
