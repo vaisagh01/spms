@@ -57,6 +57,13 @@ class Course(models.Model):
     course_name = models.CharField(max_length=255)
     department = models.CharField(max_length=255)
     credits = models.IntegerField()
+    year = models.IntegerField()  # Added Year field
+    class_teacher = models.ForeignKey(
+        'Teacher',  # Links to Teacher model
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='class_courses'  # For tracking class teacher role
+    )    
     def __str__(self):
         return self.course_name
     
@@ -72,6 +79,16 @@ class Student(User):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, default=1)  # Course name
     year_of_study = models.IntegerField(null=True, blank=True)  # Year of study (e.g., 1, 2, 3, 4)
     semester = models.IntegerField(choices=SEMESTER_CHOICES, default=1) 
+    #email = models.EmailField(unique=True)
+    
+    address = models.CharField(max_length=255, null=True, blank=True)
+
+    linkedin = models.URLField(blank=True, null=True)
+
+    career_objective = models.TextField(blank=True, null=True)
+    hard_skills = models.TextField(help_text="Comma-separated skills",blank=True, null=True)
+    soft_skills = models.TextField(help_text="Comma-separated skills",blank=True, null=True)
+
 
     class Meta:
         verbose_name = 'Student'

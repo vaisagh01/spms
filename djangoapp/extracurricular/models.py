@@ -86,3 +86,13 @@ class EventParticipation(models.Model):
     
     def __str__(self):
         return f"{self.club_member.student.username} participated in {self.event.event_name}"
+    
+class EventPoster(models.Model):
+    poster_id = models.AutoField(primary_key=True)
+    event = models.ForeignKey('Event', on_delete=models.CASCADE, related_name="posters")  # Links to Event
+    poster_image = models.ImageField(upload_to='event_posters/')
+    location = models.CharField(max_length=255)  # Event location
+    time = models.TimeField()  # Event time
+
+    def __str__(self):
+        return f"Poster for {self.event.event_name} at {self.location} on {self.time}"
