@@ -3,23 +3,27 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { Input } from "@/components/ui/input"; // ShadCN UI
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"; // ShadCN Alert
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-
-const Login = () => {
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { motion, AnimatePresence } from "framer-motion";
+export default function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState(null);
+    const [showLogin, setShowLogin] = useState(false);
     const router = useRouter();
-    const { toast } = useToast(); // Use toast hook
+    const { toast } = useToast();
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
             const user = JSON.parse(storedUser);
-            router.push(user.role === "TEACHER" ? `/teacher/${user.teacher_id}` : `/student/${user.student_id}`);
+            if (user.role === "TEACHER") router.push(`/teacher/${user.teacher_id}`);
+            else if (user.role === "STUDENT") router.push(`/student/${user.student_id}`);
+            else if (user.role === "ALUMNI") router.push(`/alumni/${user.alumni_id}`);
         }
     }, []);
 
@@ -35,61 +39,103 @@ const Login = () => {
         try {
             const { data } = await axios.post("http://localhost:8000/curricular/login/", { username, password });
 
-            localStorage.setItem("user", JSON.stringify(data)); // Store user in localStorage
+            localStorage.setItem("user", JSON.stringify(data));
 
-            // Show toast notification on successful login
             toast({
                 title: "Login Successful",
                 description: `Welcome, ${username}! Redirecting...`,
             });
 
-            // Redirect based on role
-            if (data.role === "STUDENT" && data.student_id) {
-                router.push(`/student/${data.student_id}`);
-            } else if (data.role === "TEACHER" && data.teacher_id) {
-                router.push(`/teacher/${data.teacher_id}`);
-            } else {
-                setError("Unauthorized role or missing ID");
-            }
+            if (data.role === "STUDENT" && data.student_id) router.push(`/student/${data.student_id}`);
+            else if (data.role === "TEACHER" && data.teacher_id) router.push(`/teacher/${data.teacher_id}`);
+            else if (data.role === "ALUMNI" && data.alumni_id) router.push(`/alumni/${data.alumni_id}`);
+            else{
+                toast({
+                    title: "Scheduled: Catch up",
+                    description: "Friday, February 10, 2023 at 5:57 PM",
+                  })
+            };
         } catch (err) {
             setError(err.response?.data?.error || "Login failed");
         }
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-            <form className="bg-white p-6 rounded-lg shadow-lg w-80" onSubmit={handleLogin}>
-                <h2 className="text-xl font-bold mb-4 text-center">Login</h2>
-                
-                {error && (
-                    <Alert variant="destructive" className="mb-4">
-                        <AlertTitle>Error</AlertTitle>
-                        <AlertDescription>{error}</AlertDescription>
-                    </Alert>
+        <div className="flex h-screen overflow-hidden bg-[url('/landingbg2.webp')] bg-cover">
+            {/* Left Side - App Info */}
+            <motion.div 
+                initial={{ width: "100%" }}
+                animate={{ width: showLogin ? "50%" : "100%" }}
+                transition={{ duration: 0.5 }}
+                className="text-slate-600 flex flex-col justify-center items-center p-10"
+            >
+                <div className="flex items-center gap-4">
+                <img src="/1png.png" className="w-20" alt="" />
+                <img src="/22png.png" className="h-14" alt="" />
+                </div>
+
+                {/* <h1 className="text-4xl font-bold text-ceter">Welcome</h1> */}
+
+                {/* <p className="mt-4 text-xl text-center">Manage curricular, co-curricular,extracurricular and alumni activities all in one place.</p> */}
+                {!showLogin && (
+                    <Button 
+                        onClick={() => setShowLogin(true)} 
+                        className="mt-6 p-5 bg-amber-400 text-amber-100 font-semibold hover:bg-amber-500 transition"
+                    >
+                        Login
+                    </Button>
                 )}
+            </motion.div>
 
-                <Input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="mb-3"
-                    required
-                />
-                
-                <Input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="mb-3"
-                    required
-                />
+            {/* Right Side - Login Form (Animated) */}
+            <AnimatePresence>
+                {showLogin && (
+                    <motion.div 
+                        initial={{ x: "100%" }}
+                        animate={{ x: 0 }}
+                        exit={{ x: "100%" }}
+                        transition={{ type: "spring", stiffness: 150, damping: 20 }}
+                        className="flex-grow flex justify-center items-center backdrop-blur-sm border-l-2 border-slate-300 text-white"
+                    >
+                        <Card className="w-full max-w-sm p-6 shadow-xl">
+                            <CardHeader>
+                                <CardTitle className="text-2xl pb-3 border-b-2 border-slate-300">Login to Continue</CardTitle>
+                            </CardHeader>
+                            <CardContent>
 
-                <Button type="submit" className="w-full mt-2">Login</Button>
-            </form>
+                                {error && (
+                                    <Alert variant="destructive" className="mb-4 bg-red-500 text-white">
+                                        <AlertTitle>Error</AlertTitle>
+                                        <AlertDescription>{error}</AlertDescription>
+                                    </Alert>
+                                )}
+
+                                <form onSubmit={handleLogin} className="space-y-4">
+                                    <Input
+                                        type="text"
+                                        placeholder="Username"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        className="text-black bg-slate-100"
+                                        required
+                                    />
+                                    <Input
+                                        type="password"
+                                        placeholder="Password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="text-black bg-slate-100"
+                                        required
+                                    />
+                                    <Button type="submit" className="w-full text-md bg-indigo-900 text-indigo-100 font-semibold hover:bg-indigo-800">
+                                        Login
+                                    </Button>
+                                </form>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
-};
-
-export default Login;
+}

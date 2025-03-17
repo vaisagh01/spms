@@ -1,10 +1,13 @@
+from django.views import View
 import pusher
 import json
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
 from curricular.models import Subject
-from .models import Course, Noti
+from extracurricular.models import ClubMembers, Event
+from .models import Course, EventChat, Noti
 
 # Initialize Pusher
 pusher_client = pusher.Pusher(
@@ -54,6 +57,7 @@ def send_course_notification(request):
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
+@csrf_exempt
 def get_course_notifications(request, course_id):
     try:
         course = Course.objects.filter(course_id=course_id).first()
@@ -64,3 +68,71 @@ def get_course_notifications(request, course_id):
         return JsonResponse({'status': 'success', 'notifications': list(notifications.values())})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+# Store messages in-memory for now (replace with database model if needed)
+event_chat_messages = {}
+
+class GetEventChat(View):
+    """Retrieve all chat messages for a specific event."""
+    def get(self, request, event_id, *args, **kwargs):
+        event = get_object_or_404(Event, event_id=event_id)
+        messages = EventChat.objects.filter(event=event).order_by("timestamp")
+
+        chat_data = [
+            {
+                "sender_name": msg.sender.username,  
+                "message": msg.message,
+                "timestamp": msg.timestamp.strftime("%Y-%m-%d %H:%M"),
+            }
+            for msg in messages
+        ]
+
+        return JsonResponse({"messages": chat_data}, safe=False, status=200)
+
+
+class SendChatMessage(View):
+    """Allow only club leaders to send messages in event chat."""
+    def post(self, request, *args, **kwargs):
+        try:
+            data = json.loads(request.body)
+            club_id = data.get("club_id")
+            event_id = data.get("event_id")
+            sender_id = data.get("sender_id")
+            message = data.get("message")
+
+            # Validate required fields
+            if not all([club_id, event_id, sender_id, message]):
+                return JsonResponse({"error": "Missing required fields."}, status=400)
+
+            # Check if sender is the club leader
+            try:
+                club_member = ClubMembers.objects.get(student_id=sender_id, club_id=club_id, role_in_club="Leader")
+            except ClubMembers.DoesNotExist:
+                return JsonResponse({"error": "Only the club leader can send messages."}, status=403)
+
+            sender = club_member.student  # Access the Student instance
+            event = get_object_or_404(Event, event_id=event_id)
+
+            # Store message in the database
+            chat_message = EventChat.objects.create(
+                event=event,
+                club=club_member.club,
+                sender=sender,
+                message=message
+            )
+
+            # Prepare message data
+            message_data = {
+                "sender_name": sender.username,
+                "message": message,
+                "timestamp": chat_message.timestamp.strftime("%Y-%m-%d %H:%M"),
+            }
+
+            # Send real-time update via Pusher
+            pusher_client.trigger(f"event_{event_id}_chat", "new-message", message_data)
+
+            return JsonResponse({"success": True, "message": message_data}, status=201)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON data."}, status=400)

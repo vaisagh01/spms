@@ -10,6 +10,7 @@ import { Dialog, DialogTrigger,DialogHeader, DialogContent, DialogTitle, DialogD
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { useRouter } from "next/navigation";
 
 const ClubProfile = () => {
   const [club, setClub] = useState(null);
@@ -21,29 +22,30 @@ const ClubProfile = () => {
   const [selectedEventId, setSelectedEventId] = useState(null);
   const [deleteEventId, setDeleteEventId] = useState(null);
   const [deleteMemberId, setDeleteMemberId] = useState(null);
-
+  
   const params = useParams();
-
+  const router = useRouter();
   useEffect(() => {
     const club_id = params.club_id;
     const student_id = params.student_id;
-
+    
     // Fetch the club profile from the API
     axios
-      .get(`http://localhost:8000/extracurricular/clubs/${club_id}/profile/`)
-      .then((response) => {
-        const clubData = response.data.club_profile;
-        setClub(clubData);
-
-        // Check if the student is the leader
-        if (clubData.leader_id === parseInt(student_id)) {
-          setIsLeader(true);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching club data:", error);
-      });
+    .get(`http://localhost:8000/extracurricular/clubs/${club_id}/profile/`)
+    .then((response) => {
+      const clubData = response.data.club_profile;
+      setClub(clubData);
+      
+      // Check if the student is the leader
+      if (clubData.leader_id === parseInt(student_id)) {
+        setIsLeader(true);
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching club data:", error);
+    });
   }, [params.club_id, params.student_id]);
+  // console.log(club);
 
   const handleAddMember = async () => {
     try {
@@ -152,7 +154,6 @@ const ClubProfile = () => {
     }
   };
   if (!club) return <div>Loading...</div>;
-  console.log(club);
   const confirmDeleteMember = async () => {
     try {
       await axios.delete(`http://localhost:8000/extracurricular/clubs/${params.club_id}/delete_member/`, {
@@ -169,7 +170,8 @@ const ClubProfile = () => {
     }
     setDeleteMemberId(null);
   };
-
+  // console.log(club);
+  
 
   
   return (
@@ -191,7 +193,7 @@ const ClubProfile = () => {
           <p className="text-lg text-gray-500">{club.description || "No description available"}</p>
           <p className="mt-4 text-md">Faculty In Charge: {club?.faculty_incharge || "N/A"}</p>
           <p className="text-md">Leader: {club.leader || "N/A"}</p>
-
+          <div className="w-full h-[1px] bg-slate-200 mt-3"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             {/* Members Table */}
             <div>
@@ -293,17 +295,16 @@ const ClubProfile = () => {
                   </TableHeader>
                   <TableBody>
                     {club.events.map((event, index) => (
-                      <TableRow key={index}>
+                      <TableRow key={index} onClick={()=>router.push(`${params.club_id}/${event.event_id}`)}>
                         <TableCell>{event.event_name}</TableCell>
                         <TableCell>{event.event_date}</TableCell>
                         {
                           isLeader && (
-                            
                             <TableCell>
                               {event.participants?.map((item, idx) => (
                                 <div key={idx}>{item.name}</div>
                               ))}
-                        <Dialog>
+                          <Dialog>
                             <DialogTrigger>View/Add Participants</DialogTrigger>
                             <DialogContent>
                               <DialogHeader>
@@ -312,13 +313,13 @@ const ClubProfile = () => {
                               {isLeader && (
                                 <>
                                   <Label htmlFor="club_member_id">Select Club Member</Label>
-                                  <Select onValueChange={(value) => setNewParticipant({ ...newParticipant, event_id:event.event_id, club_member: value })}>
+                                  <Select defaultValue="Selecta member" onValueChange={(value) => setNewParticipant({ ...newParticipant, event_id:event.event_id, club_member: value })}>
                                     <SelectTrigger>
                                       <SelectValue placeholder="Select a member" />
                                     </SelectTrigger>
                                     <SelectContent>
                                       {club.members.map((member,index)=> (
-                                        <SelectItem key={index} value={member.club_member_id}>
+                                        <SelectItem key={index} value={member.member_id}>
                                           {member.name}
                                         </SelectItem>
                                           ))}
@@ -344,7 +345,6 @@ const ClubProfile = () => {
                             </TableCell>
                                       )
                                     }
-
                             {
                           isLeader && (
                             <TableCell>

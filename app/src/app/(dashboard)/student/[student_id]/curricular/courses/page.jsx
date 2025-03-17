@@ -46,7 +46,8 @@ const Page = () => {
 
     fetchData();
   }, [params.student_id]); // Re-run effect when student_id changes
-
+  console.log(data);
+  
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -71,7 +72,7 @@ const Page = () => {
           </div>
 
           <h2 className='text-4xl font-bold tracking-tight'>
-            Course Plan for {data.course_name}
+            Course Plan
           </h2>
         </div>
 

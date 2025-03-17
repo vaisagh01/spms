@@ -1,5 +1,5 @@
 "use client";
-import { GraduationCap, Trophy, Code, Home } from "lucide-react";
+import { GraduationCap, Trophy, Code, Home, NotebookPenIcon } from "lucide-react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import Header from "@/components/Header";
@@ -41,6 +41,18 @@ export default function StudentLayout({ children }) {
         title: "Home",
         url: `student/${student_id}`, // Dynamically update home URL
         icon: Home,
+        isActive: true,
+      },
+      {
+        title: "Attendance",
+        url: `student/2/attendance`, // Dynamically update home URL
+        icon: Home,
+        isActive: true,
+      },
+      {
+        title: "Perfomance",
+        url: `student/2/perfomance`, // Dynamically update home URL
+        icon: NotebookPenIcon,
         isActive: true,
       },
     ],
@@ -90,7 +102,7 @@ export default function StudentLayout({ children }) {
   return (
     <div>
       <SidebarProvider>
-        <AppSidebar data={data} />
+        <AppSidebar  data={data} />
         <SidebarInset>
           <Header />
           {/* Page main content */}
