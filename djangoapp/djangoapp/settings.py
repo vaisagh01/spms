@@ -56,10 +56,10 @@ INSTALLED_APPS = [
     'djangoapp',
     'alumni',
     'noti',
-    'profilepage'
+    'profilepage',
     'assessments',
     'assignments',
-    'cocurricular'
+    'cocurricular',
 ]
 
 MIDDLEWARE = [

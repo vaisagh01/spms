@@ -63,15 +63,21 @@ def get_alumni_profile(request, alumni_id):
     if request.method == 'PUT':
         data = request.data
         alumni.graduation_year = data.get('graduation_year', alumni.graduation_year)
-        alumni.course_completed = data.get('course_completed', alumni.course_completed)
-        alumni.convocation_date = data.get('convocation_date', alumni.convocation_date)
+        alumni.current_job = data.get('current_job', alumni.current_job)
+        alumni.phone_number = data.get('phone_number', alumni.phone_number)
+        alumni.department = data.get('department', alumni.department)
         alumni.save()
-        return JsonResponse({"message": "Alumni profile updated successfully."}, status=status.HTTP_200_OK)
+
+        return JsonResponse(
+            {"message": "Alumni profile updated successfully."}, 
+            status=status.HTTP_200_OK
+        )
 
     return JsonResponse({
-        "alumni_id": alumni.id,
+        "alumni_id": alumni.alumni_id,
         "name": f"{alumni.first_name} {alumni.last_name}",
         "graduation_year": alumni.graduation_year,
-        "course_completed": alumni.course_completed,
-        "convocation_date": alumni.convocation_date,
+        "current_job": alumni.current_job,
+        "phone_number": alumni.phone_number,
+        "department": alumni.department,
     }, status=status.HTTP_200_OK)
