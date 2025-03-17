@@ -298,53 +298,7 @@ const ClubProfile = () => {
                       <TableRow key={index} onClick={()=>router.push(`${params.club_id}/${event.event_id}`)}>
                         <TableCell>{event.event_name}</TableCell>
                         <TableCell>{event.event_date}</TableCell>
-                        {
-                          isLeader && (
-                            <TableCell>
-                              {event.participants?.map((item, idx) => (
-                                <div key={idx}>{item.name}</div>
-                              ))}
-                          <Dialog>
-                            <DialogTrigger>View/Add Participants</DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Participants of {event.event_name}</DialogTitle>
-                              </DialogHeader>
-                              {isLeader && (
-                                <>
-                                  <Label htmlFor="club_member_id">Select Club Member</Label>
-                                  <Select defaultValue="Selecta member" onValueChange={(value) => setNewParticipant({ ...newParticipant, event_id:event.event_id, club_member: value })}>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select a member" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {club.members.map((member,index)=> (
-                                        <SelectItem key={index} value={member.member_id}>
-                                          {member.name}
-                                        </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                      <Label htmlFor="role_in_event">Role</Label>
-                                      <Input
-                                        id="role_in_event"
-                                        value={newParticipant.role_in_event}
-                                        onChange={(e) => setNewParticipant({ ...newParticipant, role_in_event: e.target.value })}
-                                      />
-                                      <Label htmlFor="achievement">Achievement</Label>
-                                      <Input
-                                        id="achievement"
-                                        value={newParticipant.achievement}
-                                        onChange={(e) => setNewParticipant({ ...newParticipant, achievement: e.target.value })}
-                                      />
-                                      <Button onClick={() => { setSelectedEventId(event.event_id); handleAddParticipant(); }}>Add Participant</Button>
-                                    </>
-                                  )}
-                                </DialogContent>
-                              </Dialog>
-                            </TableCell>
-                                      )
-                                    }
+                        
                             {
                           isLeader && (
                             <TableCell>

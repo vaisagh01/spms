@@ -1,5 +1,5 @@
 "use client";
-import { GraduationCap, Trophy, Code, Home, NotebookPenIcon } from "lucide-react";
+import { GraduationCap, Trophy, Code, Home, NotebookPenIcon, CheckCircle2Icon } from "lucide-react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import Header from "@/components/Header";
@@ -46,7 +46,7 @@ export default function StudentLayout({ children }) {
       {
         title: "Attendance",
         url: `student/2/attendance`, // Dynamically update home URL
-        icon: Home,
+        icon: CheckCircle2Icon,
         isActive: true,
       },
       {
@@ -86,8 +86,9 @@ export default function StudentLayout({ children }) {
         isActive: true,
         icon: Code,
         items: [
-          { title: "Internships", url: "student/2/co-curricular/internships" },
-          { title: "Projects", url: "student/2/co-curricular/projects" },
+          { title: "Internships", url: "student/2/cocurricular/internship" },
+          { title: "Projects", url: "student/2/cocurricular/project" },
+          { title: "Certificates", url: "student/2/cocurricular/certificates" },
         ],
       },
     ]),

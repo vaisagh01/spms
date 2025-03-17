@@ -3,6 +3,7 @@
 import {
   ChevronsUpDown,
   LogOut,
+  User2,
 } from "lucide-react";
 
 import {
@@ -71,10 +72,6 @@ export function NavUser({ user }) {
       <SidebarMenu>
         <SidebarMenuItem>
           <DropdownMenu>
-                <div className="flex gap-2 item-center justify-start">
-                  <img src="/1png.png" className="w-11 mb-5" alt=""/>
-                  <img src="/22png.png" className="h-6 m-3" alt=""/>
-                </div>
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"
@@ -111,6 +108,13 @@ export function NavUser({ user }) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="text-neutral-600 cursor-pointer" 
+                onClick={() => router.push(`${params.student_id}/profile`)}
+              >
+                <User2 />
+                Profile
+              </DropdownMenuItem>
               <DropdownMenuItem 
                 className="text-red-600 cursor-pointer" 
                 onClick={() => setOpenDialog(true)}
