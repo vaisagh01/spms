@@ -5,12 +5,20 @@ import { AppSidebar } from "@/components/app-sidebar";
 import Header from "@/components/Header";
 import "../../../globals.css";
 import { useParams } from "next/navigation";
+<<<<<<< Updated upstream
 import { useState, useEffect } from "react";
 
 export default function StudentLayout({ children }) {
   const params = useParams();
   const student_id = params.student_id// Get student_id from route params
   const [user,setUser] = useState({name:"vaisagh",email:"student01@gmail.com"})
+=======
+
+export default function StudentLayout({ children }) {
+  const { user } = useUser();
+  const params = useParams();
+  const student_id = params.student_id// Get student_id from route params
+>>>>>>> Stashed changes
   // Function to dynamically update URLs
   const updateUrls = (navData) => {
     return navData.map((item) => ({

@@ -118,6 +118,7 @@ class Student(User):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, default=1)  # Course name
     year_of_study = models.IntegerField(null=True, blank=True)  # Year of study (e.g., 1, 2, 3, 4)
     semester = models.IntegerField(choices=SEMESTER_CHOICES, default=1) 
+<<<<<<< Updated upstream
     #email = models.EmailField(unique=True)
     
     address = models.CharField(max_length=255, null=True, blank=True)
@@ -135,6 +136,9 @@ class Student(User):
     year_of_study = models.IntegerField(null=True, blank=True)
     semester = models.IntegerField(default=6)
 
+=======
+    
+>>>>>>> Stashed changes
     class Meta:
         verbose_name = 'Student'
         verbose_name_plural = 'Students'
@@ -213,6 +217,33 @@ class Alumni(User):
         verbose_name = "Alumni"
         verbose_name_plural = "Alumni"
 
+<<<<<<< Updated upstream
+=======
+class Attendance(models.Model):
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="attendance_records")
+    date = models.DateField(default=now)
+    status = models.CharField(max_length=10, choices=[("Present", "Present"), ("Absent", "Absent")], default="Present")
+
+    def __str__(self):
+        return f"{self.student.username} - {self.date} - {self.status}"
+
+
+class Teacher(User):
+    base_role = User.Role.TEACHER
+    objects=TeacherManager()
+    teacher_id = models.AutoField(primary_key=True)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    department = models.CharField(max_length=255,null=True, blank=True)
+    designation = models.CharField(max_length=255,null=True, blank=True)
+    hire_date = models.DateField(null=True, blank=True)
+    # Change to ManyToManyField to allow multiple courses
+    courses = models.ManyToManyField('Course', related_name="teachers", blank=True)
+    
+    class Meta:
+        verbose_name = 'Teacher'
+        verbose_name_plural = 'Teachers'
+
+>>>>>>> Stashed changes
 class Subject(models.Model):
     subject_id = models.AutoField(primary_key=True)
     subject_name = models.CharField(max_length=255)
@@ -232,6 +263,7 @@ class Topic(models.Model):
     is_completed = models.BooleanField(default=False)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="topics")
     completion_time = models.DurationField()
+    description = models.TextField( blank=True)
 
     def __str__(self):
         return self.topic_name

@@ -1,14 +1,23 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+<<<<<<< Updated upstream
 from .views import get_assignments, edit_subject, edit_topic, get_assignments_by_student, get_teacher, api_login,api_logout, get_attendance_by_course, get_chapters_by_topic,  get_subjects_by_student, get_student_details, get_teacher_subjects, get_topics_by_subject, post_assignment, update_assignment,get_assignment_submissions, update_student_semesters,upload_assignment_submission # Add this import statement
 from . import views
+=======
+from .views import api_login, create_student_marks, delete_assignment, edit_subject, edit_topic, get_assessments_and_marks_by_student, get_assignment_submissions_by_course, get_assignments, get_assignments_by_student, get_chapters_by_topic, get_student_marks_by_assessment_id, get_subjects_by_student, get_student_details, get_teacher_subjects, get_topics_by_subject, post_assignment, update_assignment, update_student_marks, get_assignment_submissions, upload_assignment_submission, get_teacher # Add this import statement
+
+>>>>>>> Stashed changes
 router = DefaultRouter()
 
 
 urlpatterns = [
     path('', include(router.urls)),
+<<<<<<< Updated upstream
     path('login/', api_login, name='api_login'),
     path('logout/', api_logout, name='api_logout'),
+=======
+    path("login/", api_login, name="api_login"),  # ✅ Login endpoint
+>>>>>>> Stashed changes
     # Student-related URLs
     
     path("update_semesters/", update_student_semesters, name="update_student_semesters"),
@@ -22,6 +31,7 @@ urlpatterns = [
     # Curricular-related URLs
     path('topics/subject/<int:subject_id>/', get_topics_by_subject, name='get_topics_by_subject'),
     path('chapters/topic/<int:topic_id>/', get_chapters_by_topic, name='get_chapters_by_topic'),
+<<<<<<< Updated upstream
     path("teacher/<int:teacher_id>/subjects/", get_teacher_subjects, name="get_teacher_subjects"),
     path("subjects/<int:subject_id>/edit/", edit_topic, name="edit_topic"),
     
@@ -38,9 +48,12 @@ urlpatterns = [
     # path("subjects/<int:subject_id>/edit/", edit_subject, name="edit_subject"),
     
     path("assignments/post/<int:teacher_id>/", post_assignment, name="post_assignment"),
+=======
+>>>>>>> Stashed changes
     path('update_assignment/<int:teacher_id>/<int:assignment_id>/', update_assignment, name='update_assignment'),
-    path("get_assignment_submissions/<int:course_id>/", get_assignment_submissions, name="get_assignment_submissions"),
+    path("get_assignment_submissions/<int:course_id>/", get_assignment_submissions_by_course, name="get_assignment_submissions"),
     path("upload_assignment_submission/", upload_assignment_submission, name="upload_assignment_submission"),
+<<<<<<< Updated upstream
     path("submissions/update/<int:submission_id>/", views.update_submission, name="update_submission"),
     path("assignments/teacher/<int:teacher_id>/", get_assignments, name="edit_topic"),
     path("assignments/delete/<int:assignment_id>/", views.delete_assignment, name="delete-assignment"),
@@ -55,5 +68,16 @@ urlpatterns = [
 
 
     
+=======
+    path("assignments/post/<int:teacher_id>/", post_assignment, name="post_assignment"),
+    path('assignments/delete/<int:assignment_id>/', delete_assignment, name='delete-assignment'),
+>>>>>>> Stashed changes
 
+    # teacher urls
+    path('teacher/<int:teacher_id>/', get_teacher, name='get_student_details'),
+    path("teacher/<int:teacher_id>/subjects/", get_teacher_subjects, name="get_teacher_subjects"),
+    path("subjects/<int:subject_id>/edit/", edit_subject, name="edit_subject"),
+    path("subjects/<int:subject_id>/edit_topic/", edit_topic, name="edit_topic"),
+    path("assignments/teacher/<teacher_id>/", get_assignments, name="edit_topic"),
+    path("assignments/<int:assignment_id>/submissions/", get_assignment_submissions, name="get_assignment_submissions"),    
 ]
