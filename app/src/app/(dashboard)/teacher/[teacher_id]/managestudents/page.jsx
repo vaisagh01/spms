@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 "use client";
 
 import { useState, useEffect } from "react";
@@ -207,14 +206,3 @@ const StudentsTable = () => {
 };
 
 export default StudentsTable;
-=======
-import React from 'react'
-
-const page = () => {
-  return (
-    <div>page</div>
-  )
-}
-
-export default page
->>>>>>> Stashed changes

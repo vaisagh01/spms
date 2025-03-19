@@ -1,8 +1,4 @@
-<<<<<<< Updated upstream
 from .models import Assessment, Assignment, AssignmentSubmission, Attendance, Chapter, Course, Student, StudentMarks, Subject, Topic
-=======
-from .models import Assessment, Assignment, AssignmentSubmission, Chapter, Course, Student, StudentMarks, Subject, Topic
->>>>>>> Stashed changes
 from rest_framework import serializers
 
 class StudentSerializer(serializers.ModelSerializer):

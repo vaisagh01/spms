@@ -75,7 +75,7 @@ export default function AssessmentsPage() {
   
   const handleSubmit = async () => {
     
-    setNewAssessment({ ...newAssessment, semester: selectedAssessment.semester })
+    setNewAssessment({ ...newAssessment })
     try {
       if (newAssessment.total_marks < 0) {
         toast({ title: "Error", description: "Total Marks cannot be negative",variant:"destructive"});

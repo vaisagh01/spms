@@ -3,76 +3,61 @@
 <head>
     <title>Resume - {{ student.full_name }}</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1, h2 { color: #2c3e50; }
-        .section { margin-bottom: 15px; }
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; color: #333; }
+        h1 { color: #2c3e50; font-size: 2em; margin-bottom: 5px; }
+        h2 { color: #34495e; border-bottom: 2px solid #ccc; padding-bottom: 5px; margin-top: 15px; }
+        p, li { margin: 5px 0; }
+        .contact-info { background: #f4f4f4; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
+        .contact-info a { color: #2980b9; text-decoration: none; }
+        .contact-info a:hover { text-decoration: underline; }
+        ul { list-style: none; padding: 0; }
+        strong { color: #2c3e50; }
     </style>
 </head>
 <body>
-
     <h1>{{ student.full_name }}</h1>
-    <p>Email: {{ student.email }} | Phone: {{ student.phone }} | LinkedIn: <a href="{{ student.linkedin }}">{{ student.linkedin }}</a></p>
-    <p>Address: {{ student.address }}</p>
-
-    <hr>
+    <div class="contact-info">
+        <p>Email: <a href="mailto:{{ student.email }}">{{ student.email }}</a> | Phone: {{ student.phone }} | LinkedIn: <a href="{{ student.linkedin }}">{{ student.linkedin }}</a></p>
+        <p>Address: {{ student.address }}</p>
+    </div>
 
     <h2>Career Objective</h2>
     <p>{{ student.career_objective }}</p>
 
     <h2>Skills</h2>
-    <strong>Hard Skills:</strong> {{ student.hard_skills }} <br>
-    <strong>Soft Skills:</strong> {{ student.soft_skills }}
+    <p><strong>Hard Skills:</strong> {{ student.hard_skills }}</p>
+    <p><strong>Soft Skills:</strong> {{ student.soft_skills }}</p>
 
-    <h2>Education</h2>
-    <table border="1" cellspacing="0" cellpadding="5">
-        <tr>
-            <th>Semester</th>
-            <th>GPA</th>
-            <th>Subjects</th>
-        </tr>
-        {% for semester in semesters %}
-        <tr>
-            <td>Semester {{ semester.semester_number }}</td>
-            <td>{{ semester.gpa }}</td>
-            <td>
-                {% for subject in semester.subjects.all %}
-                    {{ subject.name }},
-                {% endfor %}
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+    <h2>Overall Performance</h2>
+    <p><strong>Total Marks:</strong> {{ semesters.overall.total_marks_obtained }} / {{ semesters.overall.total_max_marks }}</p>
+    <p><strong>Percentage:</strong> {{ semesters.overall.percentage }}%</p>
+    <p><strong>GPA:</strong> {{ semesters.overall.gpa }}</p>
 
     <h2>Internships</h2>
     <ul>
         {% for internship in internships %}
-            <li><strong>{{ internship.company_name }}</strong> - {{ internship.position }} ({{ internship.start_date }} to {{ internship.end_date }})</li>
+            <li><strong>{{ internship.company_name }}</strong> - {{ internship.position }} ({{ internship.start_date }} - {{ internship.end_date }})</li>
         {% endfor %}
     </ul>
 
     <h2>Projects</h2>
     <ul>
         {% for project in projects %}
-            <li><strong>{{ project.title }}</strong> - {{ project.description }} ({{ project.start_date }} to {{ project.end_date }})</li>
+            <li><strong>{{ project.title }}</strong> - {{ project.description }} ({{ project.start_date }} - {{ project.end_date }})</li>
         {% endfor %}
     </ul>
 
     <h2>Certifications</h2>
     <ul>
-        {% for certification in certifications %}
-            <li><strong>{{ certification.title }}</strong> - {{ certification.issuing_organization }} ({{ certification.date_received }})</li>
+        {% for cert in certifications %}
+            <li><strong>{{ cert.title }}</strong> - {{ cert.institution }} (<a href="{{ cert.certificate_url }}">View Certificate</a>)</li>
         {% endfor %}
     </ul>
 
     <h2>Extra-Curricular Activities</h2>
     <ul>
-        {% for club in clubs %}
-            <li>Member of {{ club.club.name }}</li>
-        {% endfor %}
-        {% for event in events %}
-            <li>Participated in {{ event.event.name }}</li>
-        {% endfor %}
+        {% for club in clubs %}<li>Member of {{ club.club }}</li>{% endfor %}
+        {% for event in events %}<li>Participated in {{ event.event }}</li>{% endfor %}
     </ul>
-
 </body>
 </html>

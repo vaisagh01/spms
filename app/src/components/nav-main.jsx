@@ -30,11 +30,7 @@ export function NavMain({items}) {
             <SidebarMenuItem key={index}>
               <SidebarMenuButton asChild isActive={item.url}>
                   <Link href={"/" + item.url}>
-<<<<<<< Updated upstream
                     {<item.icon />}
-=======
-                    <item.icon />
->>>>>>> Stashed changes
                     <span>{item.title}</span>
                   </Link>
                   </SidebarMenuButton>

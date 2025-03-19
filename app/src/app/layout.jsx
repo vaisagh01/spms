@@ -6,16 +6,10 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
-<<<<<<< Updated upstream
-} from "@/components/ui/sheet";
-=======
 } from "@/components/ui/sheet"
-import { Toaster } from "@/components/ui/toaster"
->>>>>>> Stashed changes
 import "./globals.css";
 import { UserProvider } from "./context/UserContext";
-import { Poppins, Raleway } from "next/font/google";
+import { Poppins } from "next/font/google";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import NProgress from "nprogress";

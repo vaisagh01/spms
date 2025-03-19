@@ -5,7 +5,6 @@ from django.contrib.auth import authenticate, login
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-<<<<<<< Updated upstream
 from django.contrib.auth import get_user_model,login,logout
 from rest_framework.parsers import JSONParser
 from .models import Alumni, Assessment, AssessmentType, Assignment, AssignmentSubmission, Chapter, Student, StudentMarks, Subject, Teacher, Topic,Course
@@ -17,7 +16,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from .models import Attendance, Student, Subject, Teacher, Course
-from .serializers import AttendanceSerializer
+from .serializers import AttendanceSerializer, StudentMarksSerializer
 
 User = get_user_model()
 
@@ -96,111 +95,6 @@ def api_logout(request):
 
     return JsonResponse({"message": "Use POST method to logout."})
 
-=======
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import get_user_model
-from rest_framework.parsers import JSONParser
-from rest_framework import viewsets
-from .models import Assessment, Assignment, AssignmentSubmission, Chapter, Student, StudentMarks, Subject, Teacher, Topic,Course
-from .serializers import StudentMarksSerializer, StudentSerializer
-# from djangoapp.extracurricular.models import Club, ClubMembers, Event, EventParticipation
-@login_required
-def admin_dashboard(request):
-    return HttpResponse("Welcome, Admin!")
-
-@login_required
-def teacher_dashboard(request):
-    return HttpResponse("Welcome, Teacher!")
-
-@login_required
-def student_dashboard(request):
-    return HttpResponse("Welcome, Student!")
-
-def alumni_dashboard(request):
-    return HttpResponse("Welcome, Alumni!")
-
-def api_login(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            username = data.get("username")
-            password = data.get("password")
-
-            user = authenticate(username=username, password=password)
-            if user:
-                login(request, user)
-
-                response_data = {
-                    "message": "Login successful",
-                    "user": user.username,
-                    "role": user.role,
-                }
-
-                # Corrected filtering based on model relationships
-                student = Student.objects.filter(id=user.id).first()
-                teacher = Teacher.objects.filter(id=user.id).first()
-
-                if student:
-                    response_data["student_id"] = student.student_id
-                elif teacher:
-                    response_data["teacher_id"] = teacher.teacher_id
-
-                return JsonResponse(response_data)
-
-            return JsonResponse({"error": "Invalid credentials"}, status=400)
-
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON data"}, status=400)
-
-    return JsonResponse({"message": "Use POST method to login."})
-
-class StudentViewSet(viewsets.ModelViewSet):
-    queryset = Student.objects.all()
-    serializer_class = StudentSerializer
-
-User = get_user_model()
-
-@csrf_exempt
-def get_assignments(request, teacher_id):
-    try:
-        teacher = Teacher.objects.get(teacher_id=teacher_id)
-        subjects = Subject.objects.filter(course__in=teacher.courses.all())
-
-        assignments = Assignment.objects.filter(subject__in=subjects).values(
-            "assignment_id", "title", "description", "due_date", "due_time", "max_marks", "subject__subject_name"
-        )
-
-        return JsonResponse({"assignments": list(assignments)}, safe=False)
-
-    except Teacher.DoesNotExist:
-        return JsonResponse({"error": "Teacher not found"}, status=404)
-
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
-
-@csrf_exempt
-def get_assignment_submissions(request, assignment_id):
-    try:
-        assignment = Assignment.objects.get(pk=assignment_id)
-        submissions = assignment.submissions.all()  # Use related_name="submissions"
-
-        submission_data = [
-            {
-                "submission_id": sub.submission_id,
-                "student_name": f"{sub.student.first_name} {sub.student.last_name}",
-                "submission_date": sub.submission_date,
-                "marks_obtained": sub.marks_obtained,
-                "feedback": sub.feedback,
-            }
-            for sub in submissions
-        ]
-
-        return JsonResponse({"assignment_title": assignment.title, "submissions": submission_data})
-
-    except Assignment.DoesNotExist:
-        return JsonResponse({"error": "Assignment not found"}, status=404)
->>>>>>> Stashed changes
 @csrf_exempt
 def post_assignment(request, teacher_id):
     if request.method != "POST":
@@ -247,7 +141,6 @@ def post_assignment(request, teacher_id):
     
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-<<<<<<< Updated upstream
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
@@ -412,9 +305,7 @@ def delete_assignment(request, assignment_id):
         return JsonResponse({"status": "success", "message": "Assignment deleted successfully!"})
     
     return JsonResponse({"status": "error", "message": "Invalid request method."}, status=400)
-=======
     
->>>>>>> Stashed changes
 @csrf_exempt
 def update_assignment(request, teacher_id, assignment_id):
     if request.method != "PUT":
@@ -488,8 +379,6 @@ def update_assignment(request, teacher_id, assignment_id):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
  
-<<<<<<< Updated upstream
-=======
 @csrf_exempt
 def delete_assignment(request,assignment_id):
     if request.method == "DELETE":
@@ -547,7 +436,6 @@ def get_student_marks_by_assessment_id(request, assessment_id):
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.storage import default_storage
 
->>>>>>> Stashed changes
 @csrf_exempt
 def update_submission(request, submission_id):
     if request.method == "PUT":
@@ -565,8 +453,6 @@ def update_submission(request, submission_id):
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 @csrf_exempt
-<<<<<<< Updated upstream
-=======
 def update_student_marks(request, student_marks_id):
     if request.method == 'PUT':
         try:
@@ -751,7 +637,6 @@ def get_assignment_submissions_by_course(request, course_id):
         return JsonResponse({"error": str(e)}, status=500)
     
 @csrf_exempt
->>>>>>> Stashed changes
 def upload_assignment_submission(request):
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request method"}, status=405)
@@ -795,7 +680,6 @@ from django.views.decorators.csrf import csrf_exempt
 from curricular.models import Teacher
 
 @csrf_exempt
-<<<<<<< Updated upstream
 def mark_attendance(request):
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request method"}, status=405)
@@ -995,8 +879,6 @@ def get_attendance_by_course(request, course_id):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 @csrf_exempt
-=======
->>>>>>> Stashed changes
 def get_teacher(request, teacher_id):
     if request.method == "GET":
         try:
@@ -1016,7 +898,6 @@ def get_teacher(request, teacher_id):
             return JsonResponse({"error": "Teacher not found"}, status=404)
     return JsonResponse({"error": "Invalid request method"}, status=400)
 
-<<<<<<< Updated upstream
 from django.http import JsonResponse
 from .models import Teacher, Subject, Topic
 
@@ -1043,28 +924,6 @@ def get_teacher_subjects(request, teacher_id):
             },
             safe=False,
         )
-=======
-def get_teacher_subjects(request, teacher_id):
-    try:
-        teacher = Teacher.objects.get(pk=teacher_id)
-        subjects = Subject.objects.filter(teacher=teacher).prefetch_related("topics").values(
-            "subject_id", "subject_name", "subject_code", "semester", "course__course_name"
-        )
-
-        subjects_with_topics = []
-        for subject in subjects:
-            topics = Topic.objects.filter(subject_id=subject["subject_id"]).values(
-                "topic_id", "topic_name","is_completed","description"
-            )
-            subject_data = {
-                **subject,  # Spread subject details
-                "topics": list(topics),  # Add topics
-            }
-            subjects_with_topics.append(subject_data)
-
-        return JsonResponse({"teacher": f"{teacher.first_name} {teacher.last_name}", "subjects": subjects_with_topics}, safe=False)
-
->>>>>>> Stashed changes
     except Teacher.DoesNotExist:
         return JsonResponse({"error": "Teacher not found"}, status=404)
     except Exception as e:
@@ -1104,13 +963,6 @@ def edit_subject(request, subject_id):
             return JsonResponse({"error": str(e)}, status=500)
     else:
         return JsonResponse({"error": "Invalid request method"}, status=400)
-<<<<<<< Updated upstream
-@csrf_exempt
-def edit_topic(request, subject_id):
-    try:
-        data = json.loads(request.body)
-
-=======
 
 import json
 from django.http import JsonResponse
@@ -1123,7 +975,6 @@ from curricular.models import Topic  # Update this import based on your app stru
 def edit_topic(request, subject_id):
     try:
         data = json.loads(request.body)
->>>>>>> Stashed changes
         # Validate topic_id
         topic_id = data.get("topic_id")
         if not topic_id:
@@ -1139,14 +990,9 @@ def edit_topic(request, subject_id):
             topic.is_completed = data["is_completed"] in [True, "true", "True", 1]  # Ensure boolean
         if "completion_time" in data and data["completion_time"] is not None:
             topic.completion_time = data["completion_time"]
-<<<<<<< Updated upstream
         topic.save()
         print("is_completed")
         
-=======
-
-        topic.save()
->>>>>>> Stashed changes
         return JsonResponse({"message": "Topic updated successfully!", "updated_topic": {
             "topic_id": topic.pk,
             "topic_name": topic.topic_name,
@@ -1160,7 +1006,6 @@ def edit_topic(request, subject_id):
         return JsonResponse({"error": "Invalid JSON data"}, status=400)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-<<<<<<< Updated upstream
     
     
 
@@ -1396,5 +1241,3 @@ def get_semester_wise_results(request, student_id):
         }
     
     return JsonResponse({"student_id": student_id, "results": semester_results})
-=======
->>>>>>> Stashed changes

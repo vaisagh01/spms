@@ -5,20 +5,12 @@ import { AppSidebar } from "@/components/app-sidebar";
 import Header from "@/components/Header";
 import "../../../globals.css";
 import { useParams } from "next/navigation";
-<<<<<<< Updated upstream
 import { useState, useEffect } from "react";
 
 export default function StudentLayout({ children }) {
   const params = useParams();
   const student_id = params.student_id// Get student_id from route params
   const [user,setUser] = useState({name:"vaisagh",email:"student01@gmail.com"})
-=======
-
-export default function StudentLayout({ children }) {
-  const { user } = useUser();
-  const params = useParams();
-  const student_id = params.student_id// Get student_id from route params
->>>>>>> Stashed changes
   // Function to dynamically update URLs
   const updateUrls = (navData) => {
     return navData.map((item) => ({
@@ -47,20 +39,26 @@ export default function StudentLayout({ children }) {
     home: [
       {
         title: "Home",
-        url: `student/${student_id}`, // Dynamically update home URL
+        url: `student/${params.student_id}`, // Dynamically update home URL
         icon: Home,
         isActive: true,
       },
       {
         title: "Attendance",
-        url: `student/2/attendance`, // Dynamically update home URL
+        url: `student/${params.student_id}/attendance`, // Dynamically update home URL
         icon: CheckCircle2Icon,
         isActive: true,
       },
       {
         title: "Perfomance",
-        url: `student/2/perfomance`, // Dynamically update home URL
+        url: `student/${params.student_id}/perfomance`, // Dynamically update home URL
         icon: NotebookPenIcon,
+        isActive: true,
+      },
+      {
+        title: "Resume",
+        url: `student/${params.student_id}/resume`, // Dynamically update home URL
+        icon: Home,
         isActive: true,
       },
     ],
@@ -71,9 +69,9 @@ export default function StudentLayout({ children }) {
         isActive: true,
         icon: GraduationCap,
         items: [
-          { title: "Course Plan", url: "student/2/curricular/courses" },
-          { title: "Assignments", url: "student/2/curricular/assignments" },
-          { title: "Assessments", url: "student/2/curricular/assessments" },
+          { title: "Course Plan", url: `student/${params.student_id}/curricular/courses` },
+          { title: "Assignments", url: `student/${params.student_id}/curricular/assignments` },
+          { title: "Assessments", url: `student/${params.student_id}/curricular/assessments` },
         ],
       },
       {
@@ -82,10 +80,10 @@ export default function StudentLayout({ children }) {
         isActive: true,
         icon: Trophy,
         items: [
-          { title: "Clubs home", url: "student/2/extra-curricular" },
-          { title: "Clubs", url: "student/2/extra-curricular/clubs" },
-          { title: "Events", url: "student/2/extra-curricular/events" },
-          // { title: "Achievements", url: "student/2/extra-curricular/achievements" },
+          { title: "Clubs home", url: `student/${params.student_id}/extra-curricular` },
+          { title: "Clubs", url: `student/${params.student_id}/extra-curricular/clubs` },
+          { title: "Events", url: `student/${params.student_id}/extra-curricular/events` },
+          // { title: "Achievements", url: `student/${params.student_id}/extra-curricular/achievements" },
         ],
       },
       {
@@ -94,11 +92,12 @@ export default function StudentLayout({ children }) {
         isActive: true,
         icon: Code,
         items: [
-          { title: "Internships", url: "student/2/cocurricular/internship" },
-          { title: "Projects", url: "student/2/cocurricular/project" },
-          { title: "Certificates", url: "student/2/cocurricular/certificates" },
+          { title: "Internships", url: `student/${params.student_id}/cocurricular/internship` },
+          { title: "Projects", url: `student/${params.student_id}/cocurricular/project`},
+          { title: "Certificates", url: `student/${params.student_id}/cocurricular/certificates`},
         ],
       },
+      
     ]),
   };
   useEffect(() => {

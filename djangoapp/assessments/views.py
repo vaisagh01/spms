@@ -197,7 +197,8 @@ def create_assessment(request):
                 assessment_type=assessment_type,
                 assessment_name=assessment_name,
                 total_marks=total_marks,
-                date_conducted=date_conducted
+                date_conducted=date_conducted,
+                semester=subject.semester
             )
 
             # Fetch all students enrolled in the subject's course

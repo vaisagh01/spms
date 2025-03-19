@@ -89,53 +89,60 @@ export default function Header() {
     }
   };
   useEffect(() => {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      }, []);
-      console.log(user);
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+  console.log(user);
       
 
   return (
     <div className="p-4 flex justify-between items-center border-b">
-      <div className="flex items-center gap-2">
-          <SidebarTrigger />
-        <div>
-          <p className="text-neutral-500">{user?.user}</p>
-        </div>
-      </div>
-      <div className="w-1/4 flex justify-between items-center gap-3">
-        
-        <Sheet>
-          <SheetTrigger className="ml-4 flex items-center gap-1 bg-slate-200 p-2 rounded-full">
-            {notifications.length}
-            <Bell className="size-4" />
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle className="p-3 border-b-2 border-gray-100">Notifications</SheetTitle>
-              <SheetDescription>
-                <h2 className="text-lg font-semibold mt-5">Notifications</h2>
-                <ul className="mt-3">
-                  {notifications.map((notif) => (
-                    <li key={notif.id} className="border p-2 rounded mb-2">
-                      <strong>{notif.message}</strong>
-                      <div className="text-xs text-gray-500">
-                        {new Date(notif.created_at).toLocaleString()}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </SheetDescription>
-            </SheetHeader>
-          </SheetContent>
-        </Sheet>
-        <Avatar>
-          <AvatarImage src="https://github.com/shadcn.png" />
-          <AvatarFallback>CN</AvatarFallback>
-        </Avatar>
-      </div>
+  {/* Left Section: Sidebar & User Info */}
+  <div className="flex items-center gap-2">
+    <SidebarTrigger />
+    <div>
+      <p className="text-neutral-500">{user?.user}</p>
     </div>
+  </div>
+
+  {/* Right Section: Notifications & User Name */}
+  <div className="flex justify-between items-center gap-3">
+    {/* Notifications */}
+    <h1>
+      <p className="text-slate-600 text-xl">{user?.name}</p>
+    </h1>
+    <Sheet>
+      <SheetTrigger className="flex items-center gap-1 bg-slate-200 p-2 rounded-full">
+        {notifications.length}
+        <Bell className="size-4" />
+      </SheetTrigger>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle className="p-3 border-b-2 border-gray-100">
+            Notifications
+          </SheetTitle>
+          <SheetDescription>
+            <h2 className="text-lg font-semibold mt-5">Notifications</h2>
+            <ul className="mt-3">
+              {notifications.map((notif) => (
+                <li key={notif.id} className="border p-2 rounded mb-2">
+                  <strong>{notif.message}</strong>
+                  <div className="text-xs text-gray-500">
+                    {new Date(notif.created_at).toLocaleString()}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </SheetDescription>
+        </SheetHeader>
+      </SheetContent>
+    </Sheet>
+
+    {/* User Name */}
+  </div>
+</div>
+
   );
 }

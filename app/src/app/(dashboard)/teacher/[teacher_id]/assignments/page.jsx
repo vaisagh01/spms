@@ -16,7 +16,7 @@ import useNotifications from "../notifications/sendNoti";
 const API_BASE_URL = "http://127.0.0.1:8000/curricular";
 
 const AssignmentsPage = () => {
-  const { teacher_id } = useParams();
+  const params = useParams();
   const { toast } = useToast();
   const [assignments, setAssignments] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -31,11 +31,11 @@ const AssignmentsPage = () => {
 
   
   useEffect(() => {
-    if (!teacher_id) return;
+    if (!params.teacher_id) return;
 
     const fetchSubjects = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/teacher/${teacher_id}/subjects/`);
+        const response = await axios.get(`${API_BASE_URL}/teacher/${params.teacher_id}/subjects/`);
         setSubjects(response.data.subjects || []);
       } catch (error) {
         console.error("Error fetching subjects:", error);
@@ -43,15 +43,15 @@ const AssignmentsPage = () => {
     };
 
     fetchSubjects();
-  }, [teacher_id]);
+  }, [params.teacher_id]);
   
 
   useEffect(() => {
-    if (!teacher_id) return;
+    if (!params.teacher_id) return;
 
     const fetchAssignments = async () => {
       try {
-        let url = `${API_BASE_URL}/assignments/teacher/${teacher_id}/`;
+        let url = `${API_BASE_URL}/assignments/teacher/${params.teacher_id}/`;
 
         const response = await axios.get(url);
         setAssignments(response.data.assignments || []);
@@ -61,7 +61,7 @@ const AssignmentsPage = () => {
     };
 
     fetchAssignments();
-  }, [teacher_id, selectedSubject]);
+  }, [params.teacher_id, selectedSubject]);
   
 
   const handlePostAssignment = async () => {
@@ -71,7 +71,7 @@ const AssignmentsPage = () => {
     }
     setIsPosting(true);
     try {
-        const response = await axios.post(`${API_BASE_URL}/assignments/post/${teacher_id}/`, newAssignment);
+        const response = await axios.post(`${API_BASE_URL}/assignments/post/${params.teacher_id}/`, newAssignment);
         
         const newAssignmentData = {
             ...newAssignment,
@@ -101,7 +101,7 @@ const AssignmentsPage = () => {
     if (!editAssignment) return;
     
     try {
-      await axios.put(`${API_BASE_URL}/update_assignment/${teacher_id}/${editAssignment.assignment_id}/`, editAssignment);
+      await axios.put(`${API_BASE_URL}/update_assignment/${params.teacher_id}/${editAssignment.assignment_id}/`, editAssignment);
       setAssignments(prevAssignments => prevAssignments.map(a => (a.assignment_id === editAssignment.assignment_id ? editAssignment : a)));
       setEditAssignment(null);
       toast({ title: "Updated", description: "Assignment updated successfully!", variant: "default" });
@@ -196,52 +196,76 @@ const AssignmentsPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {assignments.length > 0 ? (
           assignments.map((assignment) => (
-            <Card 
-            key={assignment.assignment_id} 
-            className="relative p-4"
-            >
-              <CardHeader>
-                <CardTitle className="text-xl">{assignment.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-md text-gray-500">Subject: {assignment.subject__subject_name}</p>
-                <p className="text-md text-gray-500">Due: {assignment.due_date} at {assignment.due_time}</p>
-                <p className="text-md text-gray-500">Max Marks: {assignment.max_marks}</p>
-                <p className="mt-2">{assignment.description}</p>
+            <Card key={assignment.assignment_id} className="relative p-4">
+    <CardHeader>
+      <CardTitle className="text-xl">{assignment.title}</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-md text-gray-500">Subject: {assignment.subject__subject_name}</p>
+      <p className="text-md text-gray-500">Due: {assignment.due_date} at {assignment.due_time}</p>
+      <p className="text-md text-gray-500">Max Marks: {assignment.max_marks}</p>
+      <p className="mt-2">{assignment.description}</p>
 
-                {editAssignment && (
-                  <Dialog open={true} onOpenChange={() => setEditAssignment(null)}>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Edit Assignment</DialogTitle>
-                      </DialogHeader>
-                      <Input placeholder="Title" value={editAssignment.title} onChange={(e) => setEditAssignment({ ...editAssignment, title: e.target.value })} />
-                      <Textarea placeholder="Description" value={editAssignment.description} onChange={(e) => setEditAssignment({ ...editAssignment, description: e.target.value })} />
-                      <Input type="date" value={editAssignment.due_date} onChange={(e) => setEditAssignment({ ...editAssignment, due_date: e.target.value })} />
-                      <Input type="time" value={editAssignment.due_time} onChange={(e) => setEditAssignment({ ...editAssignment, due_time: e.target.value })} />
-                      <Input type="number" placeholder="Max Marks" value={editAssignment.max_marks} onChange={(e) => setEditAssignment({ ...editAssignment, max_marks: e.target.value })} />
-                      <Button onClick={handleUpdateAssignment}>Update Assignment</Button>
-                    </DialogContent>
-                  </Dialog>
-                )}
-                <Button className="mr-4" onClick={() => handleViewSubmissions(assignment.assignment_id)}>View</Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button className="mt-4" variant="destructive">Delete</Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDeleteAssignment(assignment.assignment_id)}>Delete</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-                
-              </CardContent>
-            </Card>
+      {/* Edit Button to open dialog */}
+      <Button className="mr-4" onClick={() => setEditAssignment(assignment)}>Edit</Button>
+
+      <Dialog open={Boolean(editAssignment)} onOpenChange={() => setEditAssignment(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Assignment</DialogTitle>
+          </DialogHeader>
+          {editAssignment && (
+            <>
+              <Input
+                placeholder="Title"
+                value={editAssignment.title}
+                onChange={(e) => setEditAssignment({ ...editAssignment, title: e.target.value })}
+              />
+              <Textarea
+                placeholder="Description"
+                value={editAssignment.description}
+                onChange={(e) => setEditAssignment({ ...editAssignment, description: e.target.value })}
+              />
+              <Input
+                type="date"
+                value={editAssignment.due_date}
+                onChange={(e) => setEditAssignment({ ...editAssignment, due_date: e.target.value })}
+              />
+              <Input
+                type="time"
+                value={editAssignment.due_time}
+                onChange={(e) => setEditAssignment({ ...editAssignment, due_time: e.target.value })}
+              />
+              <Input
+                type="number"
+                placeholder="Max Marks"
+                value={editAssignment.max_marks}
+                onChange={(e) => setEditAssignment({ ...editAssignment, max_marks: e.target.value })}
+              />
+              <Button onClick={handleUpdateAssignment}>Update Assignment</Button>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Button className="mr-4" onClick={() => handleViewSubmissions(assignment.assignment_id)}>View</Button>
+
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button className="mt-4" variant="destructive">Delete</Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleDeleteAssignment(assignment.assignment_id)}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </CardContent>
+  </Card>
           ))
         ) : (
           <p>No assignments available</p>

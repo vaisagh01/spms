@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 "use client";
 
 import { useState, useEffect } from "react";
@@ -29,30 +28,10 @@ export default function LoginPage() {
         }
     }, []);
 
-=======
-"use client"
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import axios from "axios";
-import { Input } from "@/components/ui/input"; // ShadCN UI
-import { Button } from "@/components/ui/button";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"; // ShadCN Alert
-
-const Login = () => {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState(null);
-    const router = useRouter();
-
->>>>>>> Stashed changes
     const handleLogin = async (e) => {
         e.preventDefault();
         setError(null);
 
-<<<<<<< Updated upstream
-=======
-        // **Validation Check**
->>>>>>> Stashed changes
         if (!username.trim() || !password.trim()) {
             setError("Username and password are required.");
             return;
@@ -61,7 +40,6 @@ const Login = () => {
         try {
             const { data } = await axios.post("http://localhost:8000/curricular/login/", { username, password });
 
-<<<<<<< Updated upstream
             localStorage.setItem("user", JSON.stringify(data));
 
             toast({
@@ -77,17 +55,6 @@ const Login = () => {
                     title: "Scheduled: Catch up",
                     description: "Friday, February 10, 2023 at 5:57 PM",
                 });
-=======
-            console.log("User ID:", data.student_id || data.teacher_id);
-
-            // Redirect based on role
-            if (data.role === "STUDENT") {
-                router.push(`/student/${data.student_id}`);
-            } else if (data.role === "TEACHER") {
-                router.push(`/teacher/${data.teacher_id}`);
-            } else {
-                setError("Unauthorized role");
->>>>>>> Stashed changes
             }
         } catch (err) {
             setError(err.response?.data?.error || "Login failed");
@@ -95,7 +62,6 @@ const Login = () => {
     };
 
     return (
-<<<<<<< Updated upstream
         <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-[url('/landingbg2.webp')] bg-cover">
             {/* Left Side - App Info */}
             <motion.div 
@@ -171,41 +137,3 @@ const Login = () => {
         </div>
     );
 }
-=======
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-            <form className="bg-white p-6 rounded-lg shadow-lg w-80" onSubmit={handleLogin}>
-                <h2 className="text-xl font-bold mb-4 text-center">Login</h2>
-                
-                {error && (
-                    <Alert variant="destructive" className="mb-4 absolute top-0 w-fit left-1/2 transform:translate(-50%,-50%)">
-                        <AlertTitle>Error</AlertTitle>
-                        <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                )}
-
-                <Input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="mb-3"
-                    required
-                />
-                
-                <Input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="mb-3"
-                    required
-                />
-
-                <Button type="submit" className="w-full mt-2">Login</Button>
-            </form>
-        </div>
-    );
-};
-
-export default Login;
->>>>>>> Stashed changes
