@@ -23,6 +23,7 @@ export default function Header() {
   const [courseId, setCourseId] = useState("1");
   const [message, setMessage] = useState("");
   const [notifications, setNotifications] = useState([]);
+  const [user, setUser] = useState()
 
   // Initialize Pusher
   useEffect(() => {
@@ -87,14 +88,25 @@ export default function Header() {
       alert("Error sending notification: " + error.message);
     }
   };
+  useEffect(() => {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      }, []);
+      console.log(user);
+      
 
   return (
     <div className="p-4 flex justify-between items-center border-b">
       <div className="flex items-center gap-2">
           <SidebarTrigger />
+        <div>
+          <p className="text-neutral-500">{user?.user}</p>
+        </div>
       </div>
       <div className="w-1/4 flex justify-between items-center gap-3">
-        <Input placeholder="Search..." />
+        
         <Sheet>
           <SheetTrigger className="ml-4 flex items-center gap-1 bg-slate-200 p-2 rounded-full">
             {notifications.length}

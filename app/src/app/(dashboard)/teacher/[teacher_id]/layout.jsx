@@ -1,5 +1,5 @@
 "use client";
-import { Home, NotebookPen, GroupIcon, NotebookTabs, Table2, Bell, CircleCheckBig, Building2, Table2Icon } from "lucide-react";
+import { Home, NotebookPen, GroupIcon, NotebookTabs, Bell, CircleCheckBig, Building2, Table2Icon, HardHat } from "lucide-react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { useParams } from "next/navigation";
@@ -64,15 +64,21 @@ export default function StudentLayout({ children }) {
         isActive: true,
       },
       {
-        title: "assignments",
+        title: "Assignments",
         url: `teacher/${params.teacher_id}/assignments`, // Dynamically update home URL
         icon: NotebookPen,
         isActive: true,
       },
       {
-        title: "assessments",
+        title: "Assessments",
         url: `teacher/${params.teacher_id}/assessments`, // Dynamically update home URL
         icon: NotebookTabs,
+        isActive: true,
+      },
+      {
+        title: "Internships",
+        url: `teacher/${params.teacher_id}/internships`, // Dynamically update home URL
+        icon: HardHat,
         isActive: true,
       },
       {
