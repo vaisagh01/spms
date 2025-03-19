@@ -46,22 +46,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
-    'rest_framework.authtoken',
     'curricular',
-    'rest_framework_simplejwt',
     'extracurricular',
     'notifications',
     'corsheaders',
     'djangoapp',
     'alumni',
     'noti',
-<<<<<<< HEAD
-    'profilepage',
-=======
     'resume',
-    'profilepage'
->>>>>>> 4cce278e65cb21c87df5f9e5491a1849cc609e1b
+    'profilepage',
     'assessments',
     'assignments',
     'cocurricular',
